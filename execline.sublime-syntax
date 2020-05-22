@@ -1,0 +1,399 @@
+%YAML 1.2
+# http://www.sublimetext.com/docs/3/syntax.html
+
+---
+
+# http://www.skarnet.org/software/execline/index.html
+name: Execline
+file_extensions:
+  - elb
+first_line_match: ^#!.*\bexeclineb\b
+scope: source.shell.execline
+
+# Use [A-Za-z0-9_]+ for these internal variable names
+variables:
+  # Separator whitespace - Delimits command names, parameters, etc
+  # This is a list
+  ws_sep: \s
+
+  # Terminate commands
+  # This is a single element
+  block_end: \}(?:[{{ws_sep}}]|$)
+
+  # Parameter separators - Can break apart parameters
+  param_sep: '{{ws_sep}}'
+
+  # Integer number
+  int: '[+-]?[0-9]+'
+
+  # Real (floating-point) number
+  real: (?:{{int}}\.?[0-9]*|[+-]?[0-9]*\.?[0-9]+)
+
+  # Invalid characters in a variable name identifier
+  id_var_illegal: \$\{\}
+
+contexts:
+  main:
+    # Pick up comments before the command line starts
+    - include: comment
+
+    # The command call can't begin with a close brace. We match this so exclusively early because the base command line scope will end immediately if this is seen by its lookahead
+    - match: \}
+      push:
+        - meta_scope: invalid.illegal.function-call.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+
+    # Base command line: goes up until a close brace
+    - match: (?=\S)
+      push:
+        - match: (?=\})
+          pop: true
+
+        - include: command-line
+
+  separator-whitespace:
+    # Fundamental structure used to separate elements of a command line
+    - match: '{{ws_sep}}+'
+      scope: meta.function-call.execline
+
+  parameter:
+    # We define the fundamental units passed to a command as "parameters", where those which start with a hyphen are "options" and those which don't are "arguments"
+    # Parameters are implemented as a sequence of non-operator characters separated by unescaped and unscoped whitespace
+
+    # Order important because the parameter-argument rule doesn't exclude things that look like options
+    - include: parameter-option
+    - include: parameter-argument
+
+  parameter-common:
+    # The typical components allowed anywhere in a parameter
+
+    - include: variable-expansion-unquoted
+
+    # Parameters are made of strings, either quoted or unquoted
+    - include: string
+
+  parameter-option:
+    # For optimum usefulness to the user, only option parameters receive the variable.parameter scope
+
+    # Long option (parameter starting with two hyphens)
+    - match: (?=--)
+      push:
+        - meta_scope: meta.function-call.parameter.option.long.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+
+        - match: --
+          scope:
+            punctuation.definition.option.long.begin.execline
+            meta.string.unquoted.execline
+          push:
+            - meta_scope: variable.parameter.execline
+            - match: (?=[{{param_sep}}=])
+              pop: true
+
+            # We mimic the parameter-common context but use a tweaked unquoted string pattern which excludes '='
+
+            - include: variable-expansion-unquoted
+
+            - include: string-quoted
+
+            - match: (?=[^"])
+              push:
+                - meta_scope: meta.string.unquoted.execline
+                - match: (?=[{{param_sep}}{"$=])
+                  pop: true
+                - include: string-unquoted-patterns
+
+        # Consume the '=' and then use standard parameter patterns as well as numerics
+        - match: =
+          scope:
+            variable.parameter.execline
+            punctuation.definition.option.long.separator.execline
+            meta.string.unquoted.execline
+          push:
+            - match: (?=[{{param_sep}}])
+              pop: true
+
+            - match: '{{real}}(?=$|[{{param_sep}}])'
+              scope:
+                meta.string.unquoted.execline
+                constant.numeric.execline
+
+            - include: parameter-common
+
+    # Short option (parameter starting with one hyphen)
+    - match: -(?=[^{{param_sep}}])
+      scope:
+        punctuation.definition.option.short.execline
+        meta.string.unquoted.execline
+      push:
+        - meta_scope:
+            meta.function-call.parameter.option.short.execline
+            variable.parameter.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+        - include: parameter-common
+
+  parameter-argument:
+    # Arguments are a type of parameter never treated like options by the command they are passed to
+    # This context must be entirely standalone because it is used in scopes where parameters starting with hyphens are explicitly interpreted as arguments rather than as options
+
+    - match: (?=[^{{param_sep}}])
+      # Begin if we do not precede whitespace or an operator
+      push:
+        # End if we precede whitespace or operators
+        - match: (?=[{{param_sep}}])
+          pop: true
+
+        # Treat a sequence of integers (with possible sign and decimal separator) as a standalone constant. Don't do this in the string-unquoted-patterns context, so that we can ensure it is a string solely of numbers
+        - match: '{{real}}(?=$|[{{param_sep}}])'
+          scope:
+            meta.function-call.parameter.argument.numeric.execline
+            meta.string.unquoted.execline
+            constant.numeric.execline
+
+        - include: block-string
+
+        # Use standard parameter patterns for whatever doesn't match the above
+        - match: (?!\s)
+          push:
+            - meta_scope: meta.function-call.parameter.argument.execline
+            - match: (?=[{{param_sep}}])
+              pop: true
+            - include: parameter-common
+
+  command-line:
+    # The command-line is one long argv which will be exec'd into. It might be in a block, or it might be the whole script
+
+    # Start on a non-whitespace character
+    - match: (?=\S)
+      push:
+        - [
+            {match: '(?={{block_end}})', pop: true},
+            {include: separator-whitespace},
+            {include: comment},
+            {include: command-call-chainload},
+            {include: command-call-standard},
+          ]
+
+  command-call-chainload:
+    # The "builtin" execline commands which are capable of chainloading further commands
+
+    - match: foreground(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.block.execline
+        meta.string.unquoted.execline
+      push:
+        - block-command
+
+  command-call-standard:
+    # Check if the command is any other legal command, ie, a standard command
+
+    # A complete command comprising a name element and optional parameter/comment elements
+    - match: (?=\S)
+      set:
+        - [
+            {match: '(?={{block_end}})', pop: true},
+
+            # Allowed elements (now forcibly using arguments, no more options)
+            {include: separator-whitespace},
+            {include: comment},
+            {include: parameter-argument},
+          ]
+        - [
+            {match: '(?={{block_end}})', pop: true},
+
+            # End of options (parameter of just two hyphens)
+            {match: '--(?=[{{param_sep}}])', scope:
+              meta.function-call.parameter.option.end.execline
+              variable.parameter.execline
+              punctuation.definition.option.end.execline
+              meta.string.unquoted.execline,
+            pop: true},
+
+            # Allowed elements (including options)
+            {include: separator-whitespace},
+            {include: comment},
+            {include: parameter},
+          ]
+        - [
+            # A name element
+            {match: '(?=[{{param_sep}}])', pop: true},
+            {include: command-call-standard-name},
+          ]
+
+  command-call-standard-name:
+    # Treat the element as a fraction of a name made of arbitrary strings
+    - match: (?!\s)
+      push:
+        - meta_scope:
+            meta.function-call.name.execline
+            variable.function.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+
+        - include: variable-expansion-unquoted
+        - include: string
+
+  block-command:
+    # Exactly one block, possibly preceded by whitespace and comments
+
+    - include: separator-whitespace
+    - include: comment
+
+    - match: \{(?=[{{param_sep}}])
+      scope: punctuation.section.braces.begin.execline
+      set:
+        - meta_scope: meta.function-call.block.execline meta.braces.block-command.execline
+        - match: \}(?=[{{param_sep}}]|$)
+          scope: punctuation.section.braces.end.execline
+          pop: true
+
+        # The inside of a block is indistinguishable from the base environment
+        - include: main
+
+    # We're requiring a block, so anything else showing up is a problem
+    # Just capture one whitespace-delimited word, then stop complaining
+    - match: \S+
+      scope: invalid.illegal.block.execline
+      pop: true
+
+  block-string:
+    # A block that will technically be expanded, but is just parameters in a command. This is to ensure brace balancing
+    - match: \{(?=[{{param_sep}}])
+      scope: meta.function-call.parameter.argument.execline meta.string.unquoted.execline
+      set:
+        - meta_scope: meta.braces.block-string.execline
+        - match: \}(?=[{{param_sep}}])
+          scope: meta.function-call.parameter.argument.execline meta.string.unquoted.execline
+          pop: true
+
+        # All the normal command call behaviour in here
+        - include: separator-whitespace
+        - include: comment
+        - include: parameter
+
+  comment:
+    # A full or inline comment
+    - match: \#
+      scope: punctuation.definition.comment.execline
+      push:
+        - meta_scope: comment.line.execline
+        - match: \n
+          pop: true
+
+  string:
+    - include: string-quoted
+    - include: string-unquoted
+
+  string-quoted:
+    - match: \"
+      scope: punctuation.definition.string.begin.execline
+      push:
+        - meta_scope: string.quoted.double.execline
+        - match: \"
+          scope: punctuation.definition.string.end.execline
+          pop: true
+        - include: string-quoted-patterns
+
+  string-quoted-patterns:
+    # This list mostly follows the execline documentation
+    # They're all for making ASCII characters
+    - match: |-
+        (?x)
+        \\[abtnvfr] # Shortcuts
+        |
+        \\0x[0-9A-Fa-f]{1,2} # Hex
+        |
+        \\0[0-7]{1,3} # Octal
+        |
+        \\[1-9][0-9]{0,2} # Decimal
+      scope: constant.character.escape.ascii.execline
+
+    # Escaping a literal newline in a quoted string will effectively remove it
+    - match: \\\n
+      scope: constant.character.escape.newline.execline
+
+    # And in fact, everything else can be escaped too! But it won't do anything...
+    - match: \\.
+      scope: constant.character.escape.other.execline
+
+    - include: variable-expansion-quoted
+
+  string-unquoted:
+    # Begin unquoted string if not whitespace, control operator, quoted string, or variable expansion
+    - match: (?=[^{{param_sep}}"$])
+      push:
+        - meta_scope: meta.string.unquoted.execline
+        # End unquoted string at anything that can't be in one
+        - match: (?=[{{param_sep}}"$])
+          pop: true
+        - include: string-unquoted-patterns
+
+  string-unquoted-patterns:
+    # Escaping a literal newline in an unquoted string will turn it into a word
+    - match: \\\n
+      scope: constant.character.escape.newline.execline
+
+    # Everything can be "escaped" in unquoted strings, whether it has other meanings or not
+    - match: \\.
+      scope: constant.character.escape.other.execline
+
+  variable-expansion-unquoted:
+    # Variable expansion that starts as an unquoted string, but may contain quoted strings
+
+    - match: (\$)(\{)
+      captures:
+        1: punctuation.definition.variable.sign.execline
+        2: punctuation.definition.variable.begin.execline
+      push:
+        - meta_scope: meta.string.unquoted.execline variable.other.braces.execline
+        - match: \}
+          scope: punctuation.definition.variable.end.execline
+          pop: true
+
+        - include: variable-expansion-unquoted
+        - include: string-unquoted-patterns
+        - include: string-quoted
+
+    - match: \$
+      scope: punctuation.definition.variable.sign.execline
+      push:
+        # Variables that started unquoted can feature unquoted escapes and quoted strings
+        - meta_scope: meta.string.unquoted.execline variable.other.bare.execline
+        - match: (?=[{{id_var_illegal}}{{param_sep}}])
+          pop: true
+
+        - include: variable-expansion-unquoted
+        - include: string-unquoted-patterns
+        - include: string-quoted
+
+  variable-expansion-quoted:
+    # Variable expansion that starts as a quoted string, but may continue to an unquoted string
+
+    - match: (\$)(\{)
+      captures:
+        1: punctuation.definition.variable.sign.execline
+        2: punctuation.definition.variable.begin.execline
+      push:
+        - meta_scope: variable.other.braces.execline
+        - match: \}
+          scope: punctuation.definition.variable.end.execline
+          pop: true
+
+        - include: variable-expansion-quoted
+        - include: string-quoted-patterns
+
+    - match: \$
+      scope: punctuation.definition.variable.sign.execline
+      push:
+        # Variables that started quoted can contain quoted escapes
+        # TODO: Make it possible to include unquoted strings in the variable too
+        - meta_scope: variable.other.bare.execline
+        - match: (?=[{{id_var_illegal}}{{param_sep}}"])
+          pop: true
+
+        - include: variable-expansion-quoted
+        - include: string-quoted-patterns

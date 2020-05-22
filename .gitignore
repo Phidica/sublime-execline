@@ -1,0 +1,15 @@
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+*.tmLanguage.cache
+*.tmPreferences.cache
+package-metadata.json
+*.pyc
+
+# User
+.ipynb_checkpoints
+*.ipynb
+*.xcf
+
+.gitlint
+*_sec.*

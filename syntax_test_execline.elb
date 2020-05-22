@@ -1,0 +1,235 @@
+#! SYNTAX TEST "Packages/execline/execline.sublime-syntax"
+
+foreground { echo out }
+#! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+#! ^^^^^^^ meta.function-call.name keyword.control.block meta.string.unquoted
+#!         ^^^^^^^^^^^^ meta.braces.block-command
+#!         ^ punctuation.section.braces.begin
+#!           ^^^^ meta.function-call.name variable.function meta.string.unquoted
+#!                ^^^ meta.function-call.parameter.argument meta.string.unquoted
+#!                    ^ punctuation.section.braces.end
+
+# comment
+#!<- comment.line
+
+foreground # comment
+#!         ^^^^^^^^^^ comment.line
+{ # comment
+#! <- punctuation.section.braces.begin
+  echo # comment
+#!^^^^ meta.function-call.name variable.function meta.string.unquoted
+#!     ^^^^^^^^^^ comment.line
+  out # comment
+#!^^^ meta.function-call.parameter.argument meta.string.unquoted
+#!    ^^^^^^^^^^ comment.line
+} # comment
+# comment
+#! <- comment.line
+
+foreground { echo one} {two }\  \ } }
+#!                ^^^^ meta.string.unquoted
+#!                   ^ - punctuation
+#!                     ^^^^ meta.string.unquoted
+#!                     ^ - punctuation
+#!                          ^ - punctuation
+#!                                ^ - punctuation
+#!                                  ^ punctuation.section.braces.end
+
+foreground { echo {} { indented } {
+#!                ^^ meta.string.unquoted
+#!                ^^ - punctuation
+#!                   ^^^^^^^^^^^^ meta.function-call.block meta.function-call
+#!                   ^ meta.string.unquoted
+#!                   ^ - punctuation
+#!                              ^ meta.string.unquoted
+#!                              ^ - punctuation
+# comment
+#! <- comment.line
+}  }
+#! ^ punctuation.section.braces.end
+
+foreground {}
+#!         ^^ invalid.illegal.block
+
+# comment
+#! <- comment.line
+
+foreground { }
+#!         ^^^ meta.function-call.block meta.braces.block-command
+
+# comment
+#! <- comment.line
+
+foreground { echo str1 2 3str }
+#!                ^^^^ meta.string.unquoted
+#!                   ^ - constant.numeric
+#!                     ^ meta.string.unquoted constant.numeric
+#!                       ^ - constant.numeric
+#!                       ^^^^ meta.string.unquoted
+
+foreground { echo 1 1.2 .3 4. . }
+#!                ^ constant.numeric
+#!                  ^^^ constant.numeric
+#!                      ^^ constant.numeric
+#!                         ^^ constant.numeric
+#!                            ^ - constant.numeric
+
+foreground { echo --arg -arg arg } foreground { echo arg # comment
+#!                ^^^^^ meta.function-call.parameter.option.long variable.parameter
+#!                      ^^^^ meta.function-call.parameter.option.short variable.parameter
+#!                           ^^^ meta.function-call.parameter.argument
+#!                               ^ meta.braces.block-command punctuation.section.braces.end
+#!                                              ^^^^ meta.function-call.name variable.function
+#!                                              ^^^^^^^^ meta.function-call
+#!                                                       ^ punctuation.definition.comment
+#!                                                       ^^^^^^^^^ comment.line
+}
+
+foreground { echo a=a -a=a --a=a }
+#!                ^^^ meta.string.unquoted
+#!                    ^^^^ meta.function-call.parameter.option.short variable.parameter meta.string.unquoted
+#!                    ^ punctuation.definition.option.short
+#!                      ^ - punctuation.definition.option.long.separator
+#!                         ^^^^^ meta.function-call.parameter.option.long meta.string.unquoted
+#!                         ^^ meta.function-call.parameter.option.long variable.parameter punctuation.definition.option.long.begin
+#!                            ^ meta.function-call.parameter.option.long variable.parameter punctuation.definition.option.long.separator
+
+foreground { echo - 1 }
+#!                ^ - variable.parameter
+
+foreground { echo =
+}
+#! <- punctuation.section.braces.end
+
+foreground { echo --== }
+foreground { echo }
+#!           ^^^^ variable.function
+
+foreground { = arg }
+#!           ^ variable.function meta.string.unquoted
+#!             ^^^ meta.function-call.parameter.argument
+
+foreground { echo --num=2 -n2 }
+#!                ^^^^^^ meta.string.unquoted
+#!                      ^ meta.function-call.parameter.option.long constant.numeric
+#!                          ^ - constant.numeric
+
+foreground { cmd -h --help -- -- -h # comment
+#!           ^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+#!               ^^ meta.function-call.parameter.option.short variable.parameter
+#!                  ^^^^^^ meta.function-call.parameter.option.long variable.parameter
+#!                         ^^ meta.function-call.parameter.option.end variable.parameter punctuation.definition.option.end meta.string.unquoted
+#!                            ^^ - variable.parameter
+#!                               ^^ - variable.parameter
+#!                                  ^^^^^^^^^ comment.line
+}
+
+foreground { 1 arg -1 +1 -- -1. +.0 }
+#!           ^ - constant.numeric
+#!                 ^^ meta.function-call.parameter.option.short variable.parameter
+#!                 ^^ - constant.numeric
+#!                    ^^ constant.numeric
+#!                          ^^^ constant.numeric
+#!                              ^^^ constant.numeric
+
+foreground { echo "one" 'two'' --opt="string" }
+#!                ^^^^^ string.quoted.double
+#!                ^ punctuation.definition.string.begin
+#!                    ^ punctuation.definition.string.end
+#!                      ^^^^^^ meta.string.unquoted
+#!                                   ^^^^^^^^ meta.function-call.parameter.option.long string.quoted.double
+
+foreground { echo "
+# notacomment" "\0x41\66\0103D\n" "\a\b\c\d\e"
+#! <- string.quoted.double
+#! <- - comment
+#!              ^^^^^^^^^^^^^ constant.character.escape.ascii
+#!                            ^^ constant.character.escape.ascii
+#!                                 ^^^^ constant.character.escape.ascii
+#!                                     ^^^^^^ constant.character.escape.other
+"quote in my quote \""
+#!                 ^^ constant.character.escape.other
+#!                   ^ string.quoted.double punctuation.definition.string.end
+single"\
+#!     ^^ string.quoted.double constant.character.escape.newline
+"word
+}
+
+foreground { echo \} \$ \\ \{}
+#!                ^^ constant.character.escape.other
+#!                   ^^ constant.character.escape.other
+#!                      ^^ constant.character.escape.other
+#!                         ^^ constant.character.escape.other
+#!                           ^ - punctuation
+  bar \
+# notacomment
+#!<- meta.string.unquoted
+  baz \
+#!    ^^ constant.character.escape.newline
+}
+
+foreground { echo $var ${var} $$var ${${var}} }
+#!                ^^^^ meta.string.unquoted variable.other.bare
+#!                ^ punctuation.definition.variable.sign
+#!                     ^^^^^^ variable.other.braces
+#!                     ^ punctuation.definition.variable.sign
+#!                      ^ punctuation.definition.variable.begin
+#!                          ^ punctuation.definition.variable.end
+#!                            ^^^^^ variable.other.bare
+#!                                  ^^^^^^^^^ variable.other.braces
+
+foreground {
+  echo $\v\a\r ${\v\a\r} ${"var"}
+#!      ^^^^^^ meta.string.unquoted constant.character.escape.other
+#!               ^^^^^^ meta.string.unquoted constant.character.escape.other
+#!                         ^^^^^ variable.other.braces string.quoted.double
+  $\
+var
+#!<- meta.string.unquoted variable.other.bare
+  $\
+#! ^^ meta.string.unquoted variable.other.bare constant.character.escape.newline
+  ${\
+#!  ^^ meta.string.unquoted variable.other.braces constant.character.escape.newline
+}
+}
+
+foreground { echo $var"iable" arg $"var"iable arg }
+#!                ^^^^^^^^^^^ variable.other.bare
+#!                                ^^^^^^^^^^^ variable.other.bare
+
+foreground { echo "$var" "${var}" "$$var" "${${var}}" }
+#!                 ^^^^ string.quoted variable.other.bare
+#!                 ^ punctuation.definition.variable.sign
+#!                      ^ - string.quoted
+#!                        ^^^^^^ variable.other.braces
+#!                        ^ punctuation.definition.variable.sign
+#!                         ^ punctuation.definition.variable.begin
+#!                             ^ punctuation.definition.variable.end
+#!                               ^ - string.quoted
+#!                                 ^^^^^ variable.other.bare
+#!                                       ^ - string.quoted
+#!                                         ^^^^^^^^^ variable.other.braces
+
+foreground {
+  echo "$\v\a\r" "${\v\a\r}"
+#!       ^^^^^^ string.quoted constant.character.escape.ascii
+#!                  ^^^^^^ string.quoted constant.character.escape.ascii
+  "$\
+var"
+#!<- string.quoted variable.other.bare
+  "$\
+#!  ^^ string.quoted variable.other.bare constant.character.escape.newline
+"
+  "${\
+#!   ^^ string.quoted variable.other.braces constant.character.escape.newline
+}"
+}
+
+foreground { $cmd out --opt="$setting1" -a$setting2 -- $param }
+#!           ^^^^ meta.function-call.name variable.function meta.string.unquoted variable.other.bare
+#!                           ^^^^^^^^ meta.function-call.parameter.option.long string.quoted.double variable.other.bare
+#!                                        ^^^^^^^^^ meta.function-call.parameter.option.short variable.parameter meta.string.unquoted variable.other.bare
+#!                                                     ^^^^^^ meta.function-call.parameter.argument meta.string.unquoted variable.other.bare
+
+foreground { "$cmd" out }
+#!            ^^^^ meta.function-call.name variable.function string.quoted.double variable.other.bare
