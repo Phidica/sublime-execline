@@ -10,6 +10,13 @@ file_extensions:
 first_line_match: ^#!.*\bexeclineb\b
 scope: source.shell.execline
 
+# Notes:
+
+# - The execlineb launcher appears to expand all quoted strings into unquoted strings, prior to any component of the command-line being executed.
+# - Variables can be named with almost any non-whitespace characters, including escaped whitespace.
+# - Hence, variable substitution can span both unquoted and quoted strings, continuing as long as it doesn't encounter whitespace.
+# - This means that we need to treat variable substitution as very closely linked to string types, in order to track whether a subsitution is still occurring multiple string types later.
+
 # Use [A-Za-z0-9_]+ for these internal variable names
 variables:
   # Separator whitespace - Delimits command names, parameters, etc
@@ -68,9 +75,8 @@ contexts:
   parameter-common:
     # The typical components allowed anywhere in a parameter
 
-    - include: variable-expansion-unquoted
-
     # Parameters are made of strings, either quoted or unquoted
+    # This includes variable substitutions, which can span different string types
     - include: string
 
   parameter-option:
@@ -94,7 +100,7 @@ contexts:
 
             # We mimic the parameter-common context but use a tweaked unquoted string pattern which excludes '='
 
-            - include: variable-expansion-unquoted
+            - include: variable-substitution-unquoted
 
             - include: string-quoted
 
@@ -234,8 +240,7 @@ contexts:
         - match: (?=[{{param_sep}}])
           pop: true
 
-        - include: variable-expansion-unquoted
-        - include: string
+        - include: parameter-common
 
   block-command:
     # Exactly one block, possibly preceded by whitespace and comments
@@ -246,7 +251,9 @@ contexts:
     - match: \{(?=[{{param_sep}}])
       scope: punctuation.section.braces.begin.execline
       set:
-        - meta_scope: meta.function-call.block.execline meta.braces.block-command.execline
+        - meta_scope:
+            meta.function-call.block.execline
+            meta.braces.block-command.execline
         - match: \}(?=[{{param_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
@@ -263,11 +270,15 @@ contexts:
   block-string:
     # A block that will technically be expanded, but is just parameters in a command. This is to ensure brace balancing
     - match: \{(?=[{{param_sep}}])
-      scope: meta.function-call.parameter.argument.execline meta.string.unquoted.execline
+      scope:
+        meta.function-call.parameter.argument.execline
+        meta.string.unquoted.execline
       set:
         - meta_scope: meta.braces.block-string.execline
         - match: \}(?=[{{param_sep}}])
-          scope: meta.function-call.parameter.argument.execline meta.string.unquoted.execline
+          scope:
+            meta.function-call.parameter.argument.execline
+            meta.string.unquoted.execline
           pop: true
 
         # All the normal command call behaviour in here
@@ -290,13 +301,25 @@ contexts:
 
   string-quoted:
     - match: \"
-      scope: punctuation.definition.string.begin.execline
+      scope: string.quoted.execline punctuation.definition.string.begin.execline
       push:
-        - meta_scope: string.quoted.double.execline
         - match: \"
-          scope: punctuation.definition.string.end.execline
+          scope: string.quoted.execline punctuation.definition.string.end.execline
           pop: true
-        - include: string-quoted-patterns
+
+        # We *push* the braces type because after the closing brace, we have to return to a normal string behaviour (right here). We *set* the bare type because only the end of a parameter, and hence the end of the string itself, will stop it, and in that case it must handle the end of the string itself. This is very different to way unquoted variables are handled
+        - match: (?=\$\{)
+          push: variable-substitution-quoted-begin
+        - match: (?=\$)
+          set: variable-substitution-quoted-begin
+
+        # Handle quoted escapes
+        - match: ''
+          push:
+            - meta_scope: string.quoted.execline
+            - match: (?=[\"\$])
+              pop: true
+            - include: string-quoted-patterns
 
   string-quoted-patterns:
     # This list mostly follows the execline documentation
@@ -320,14 +343,16 @@ contexts:
     - match: \\.
       scope: constant.character.escape.other.execline
 
-    - include: variable-expansion-quoted
-
   string-unquoted:
-    # Begin unquoted string if not whitespace, control operator, quoted string, or variable expansion
+    # Unquoted strings encompass characters that are not whitespace or quoted strings
+
+    # Variable substitution must be handled specially because it can extend into quoted strings
+    - match: (?=\$)
+      push: variable-substitution-unquoted-begin
+
     - match: (?=[^{{param_sep}}"$])
       push:
         - meta_scope: meta.string.unquoted.execline
-        # End unquoted string at anything that can't be in one
         - match: (?=[{{param_sep}}"$])
           pop: true
         - include: string-unquoted-patterns
@@ -341,59 +366,105 @@ contexts:
     - match: \\.
       scope: constant.character.escape.other.execline
 
-  variable-expansion-unquoted:
-    # Variable expansion that starts as an unquoted string, but may contain quoted strings
+  variable-substitution-quoted-begin:
+    # Variable substitution that starts as a quoted string, but may continue to an unquoted string
 
     - match: (\$)(\{)
       captures:
-        1: punctuation.definition.variable.sign.execline
-        2: punctuation.definition.variable.begin.execline
-      push:
-        - meta_scope: meta.string.unquoted.execline variable.other.braces.execline
-        - match: \}
-          scope: punctuation.definition.variable.end.execline
-          pop: true
-
-        - include: variable-expansion-unquoted
-        - include: string-unquoted-patterns
-        - include: string-quoted
-
-    - match: \$
-      scope: punctuation.definition.variable.sign.execline
-      push:
-        # Variables that started unquoted can feature unquoted escapes and quoted strings
-        - meta_scope: meta.string.unquoted.execline variable.other.bare.execline
-        - match: (?=[{{id_var_illegal}}{{param_sep}}])
-          pop: true
-
-        - include: variable-expansion-unquoted
-        - include: string-unquoted-patterns
-        - include: string-quoted
-
-  variable-expansion-quoted:
-    # Variable expansion that starts as a quoted string, but may continue to an unquoted string
-
-    - match: (\$)(\{)
-      captures:
-        1: punctuation.definition.variable.sign.execline
-        2: punctuation.definition.variable.begin.execline
-      push:
+        1: string.quoted.execline punctuation.definition.variable.sign.execline
+        2: string.quoted.execline punctuation.definition.variable.begin.execline
+      set:
         - meta_scope: variable.other.braces.execline
+
         - match: \}
-          scope: punctuation.definition.variable.end.execline
+          scope:
+            string.quoted.execline
+            punctuation.definition.variable.end.execline
           pop: true
 
-        - include: variable-expansion-quoted
-        - include: string-quoted-patterns
+        - match: (?!\})
+          push: variable-substitution-quoted-continue
 
     - match: \$
-      scope: punctuation.definition.variable.sign.execline
-      push:
-        # Variables that started quoted can contain quoted escapes
-        # TODO: Make it possible to include unquoted strings in the variable too
-        - meta_scope: variable.other.bare.execline
-        - match: (?=[{{id_var_illegal}}{{param_sep}}"])
+      scope:
+        string.quoted.execline
+        punctuation.definition.variable.sign.execline
+      set:
+        - [
+            {meta_scope: variable.other.bare.execline},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-quoted-continue
+
+  variable-substitution-quoted-continue:
+    # Safe to apply this meta_scope on everything
+    - meta_scope: string.quoted.execline
+
+    # Terminate this variable by encountering another one
+    - match: (?=\$)
+      set: variable-substitution-quoted-begin
+
+    # Handle quoted escapes
+    - include: string-quoted-patterns
+
+    # Switch into an unquoted variable
+    - match: \"
+      scope: punctuation.definition.string.end.execline
+      set: variable-substitution-unquoted-continue
+
+    # Only braces terminate a quoted variable substitution
+    - match: (?=[{{id_var_illegal}}])
+      pop: true
+
+  variable-substitution-unquoted-begin:
+    # Variable substitution that starts as an unquoted string, but may contain quoted strings
+
+    - match: (\$)(\{)
+      captures:
+        1: meta.string.unquoted.execline punctuation.definition.variable.sign.execline
+        2: meta.string.unquoted.execline punctuation.definition.variable.begin.execline
+      set:
+        - meta_scope: variable.other.braces.execline
+
+        - match: \}
+          scope:
+            meta.string.unquoted.execline
+            punctuation.definition.variable.end.execline
           pop: true
 
-        - include: variable-expansion-quoted
-        - include: string-quoted-patterns
+        - match: (?!\})
+          push: variable-substitution-unquoted-continue
+
+    - match: \$
+      scope:
+        meta.string.unquoted.execline
+        punctuation.definition.variable.sign.execline
+      set:
+        - [
+            {meta_scope:
+              variable.other.bare.execline},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-unquoted-continue
+
+  variable-substitution-unquoted-continue:
+    # Braces and spaces terminate an unquoted variable substitution
+    - match: (?=[{{id_var_illegal}}{{param_sep}}])
+      pop: true
+
+    # Switch to a quoted variable
+    - match: \"
+      scope: punctuation.definition.string.begin.execline
+      set: variable-substitution-quoted-continue
+
+    # Terminate this variable by encountering another one
+    - match: (?=\$)
+      set: variable-substitution-unquoted-begin
+
+    # Handle unquoted escapes, with the appropriate meta_scope
+    - match: ''
+      push:
+        - meta_scope: meta.string.unquoted.execline
+        - match: (?=[{{id_var_illegal}}{{param_sep}}"$])
+          pop: true
+        - include: string-unquoted-patterns
