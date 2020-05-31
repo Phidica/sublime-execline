@@ -380,6 +380,10 @@ contexts:
       set:
         - meta_scope: variable.other.braces.execline
 
+        # TODO: Unquoted whitespace very ungracefully terminates a braces variable substitution. In truth it should cancel any implication the substitution ever tried to occur
+        # - match: (?=[{{param_sep}}])
+        #   pop: true
+
         - match: \}
           scope:
             string.quoted.execline
@@ -409,6 +413,10 @@ contexts:
         2: meta.string.unquoted.execline punctuation.definition.variable.begin.execline
       set:
         - meta_scope: variable.other.braces.execline
+
+        # Unquoted whitespace very ungracefully terminates a braces variable substitution. In truth it should cancel any implication the substitution ever tried to occur
+        - match: (?=[{{param_sep}}])
+          pop: true
 
         - match: \}
           scope:
@@ -478,7 +486,11 @@ contexts:
   variable-substitution-began-quoted-braces-continue-unquoted:
     # variable.other applied by variable-substitution-begin-quoted-braces
 
-    # Only a closing brace terminates a braces variable substitution
+    # TODO: Unquoted whitespace terminates an unquoted variable substitution
+    # - match: (?=[{{param_sep}}])
+    #   pop: true
+
+    # Only a *closing* brace terminates a braces variable substitution
     - match: (?=[}])
       pop: true
 
@@ -510,7 +522,7 @@ contexts:
   variable-substitution-began-quoted-bare-continue-unquoted:
     - meta_content_scope: variable.other.bare.execline
 
-    # An unquoted space terminates an unquoted bare variable substitution
+    # Unquoted whitespace terminates an unquoted variable substitution
     - match: (?=[{{param_sep}}])
       pop: true
 
@@ -546,7 +558,11 @@ contexts:
   variable-substitution-began-unquoted-braces-continue-unquoted:
     # variable.other applied by variable-substitution-begin-unquoted
 
-    # Only a closing brace terminates a braces variable substitution
+    # Unquoted whitespace terminates an unquoted variable substitution
+    - match: (?=[{{param_sep}}])
+      pop: true
+
+    # Only a *closing* brace terminates a braces variable substitution
     - match: (?=[}])
       pop: true
 
@@ -578,7 +594,7 @@ contexts:
   variable-substitution-began-unquoted-bare-continue-unquoted:
     # variable.other applied by variable-substitution-begin-unquoted
 
-    # An unquoted space terminates an unquoted bare variable substitution
+    # Unquoted whitespace terminates an unquoted variable substitution
     - match: (?=[{{param_sep}}])
       pop: true
 

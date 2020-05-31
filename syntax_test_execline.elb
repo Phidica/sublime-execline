@@ -179,13 +179,14 @@ foreground { echo $var ${var} $$var ${${var}} }
 #!                                  ^^^^^^^^^ variable.other.braces meta.string.unquoted
 #!                                  ^^^^^^^^^ - meta.string.unquoted meta.string.unquoted
 
-foreground { echo ${var{} arg ${vari able} }
+foreground { echo ${var{} arg ${wont work} ${ nope} }
 #!                  ^^^^^ variable.other.braces
 #!                        ^ - variable.other
-#!                                  ^ variable.other.braces
-#!                                  ^ - meta.string.unquoted
-#!                                   ^^^^ variable.other.braces meta.string.unquoted
-#!                                        ^ - variable.other
+#!                                  ^^^^^^ - variable.other.braces
+#!                                   ^^^^^ meta.string.unquoted
+#!                                         ^^ variable.other.braces meta.string.unquoted
+#!                                           ^^^^^^ - variable.other.braces
+#!                                           ^ - meta.string.unquoted
 
 foreground {
   echo $\v\a\r ${\v\a\r} ${"var"iable}
@@ -202,7 +203,6 @@ var
 #! ^^ variable.other.bare meta.string.unquoted constant.character.escape.newline
   ${\
 #!  ^^ variable.other.braces meta.string.unquoted constant.character.escape.newline
-}
 }
 
 foreground { echo $var"iable" arg $"var"iable }
@@ -279,6 +279,11 @@ foreground { echo $foo{} {$foo} "$foo{}" "{$foo}bar" "${foo{}" }
 #!                                             ^^^^^ - variable.other
 #!                                             ^^^^^ - meta.string.unquoted
 #!                                                      ^^^^^ variable.other.braces
+
+foreground { echo "${foo} bar" baz }
+#!                       ^^^^^ string.quoted
+#!                       ^ - variable.other
+#!                             ^^^ meta.string.unquoted
 
 foreground { $cmd out --opt="$setting1" -a$setting2 -- $param }
 #!           ^^^^ meta.function-call.name variable.function variable.other.bare meta.string.unquoted
