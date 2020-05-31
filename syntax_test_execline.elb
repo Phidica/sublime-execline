@@ -179,6 +179,14 @@ foreground { echo $var ${var} $$var ${${var}} }
 #!                                  ^^^^^^^^^ variable.other.braces meta.string.unquoted
 #!                                  ^^^^^^^^^ - meta.string.unquoted meta.string.unquoted
 
+foreground { echo ${var{} arg ${vari able} }
+#!                  ^^^^^ variable.other.braces
+#!                        ^ - variable.other
+#!                                  ^ variable.other.braces
+#!                                  ^ - meta.string.unquoted
+#!                                   ^^^^ variable.other.braces meta.string.unquoted
+#!                                        ^ - variable.other
+
 foreground {
   echo $\v\a\r ${\v\a\r} ${"var"iable}
 #!      ^^^^^^ meta.string.unquoted constant.character.escape.other
@@ -202,6 +210,7 @@ foreground { echo $var"iable" arg $"var"iable }
 #!                ^^^^ meta.string.unquoted
 #!                    ^^^^^^^ string.quoted
 #!                    ^^^^^^^ - meta.string.unquoted
+#!                            ^^^ - variable.other
 #!                            ^^^ - string.quoted
 #!                                ^^^^^^^^^^^ variable.other.bare
 #!                                ^ meta.string.unquoted

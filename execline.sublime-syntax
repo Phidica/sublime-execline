@@ -417,7 +417,7 @@ contexts:
           pop: true
 
         - match: (?!\})
-          push: variable-substitution-began-unquoted-continue-unquoted
+          push: variable-substitution-began-unquoted-braces-continue-unquoted
 
     - match: \$
       scope:
@@ -429,7 +429,7 @@ contexts:
               variable.other.bare.execline},
             {match: '', pop: true},
           ]
-        - variable-substitution-began-unquoted-continue-unquoted
+        - variable-substitution-began-unquoted-bare-continue-unquoted
 
   variable-substitution-quoted-common:
     # Start a new variable if we encounter one
@@ -451,13 +451,8 @@ contexts:
     - match: (?=\$)
       set: variable-substitution-begin-unquoted
 
-    # Braces and spaces terminate an unquoted variable substitution
-    # TODO: Put this separately in each continue-unquoted environment, with '{' removed for braces all types
-    - match: (?=[{{param_sep}}{}])
-      pop: true
-
     # Put the appropriate meta_scope on all characters, and handle unquoted escapes
-    - match: ''
+    - match: (?=[^{{param_sep}}])
       push:
         - meta_scope: meta.string.unquoted.execline
         - match: (?=[{{param_sep}}{}"$])
@@ -467,10 +462,7 @@ contexts:
   variable-substitution-began-quoted-braces-continue-quoted:
     # variable.other applied by variable-substitution-begin-quoted-braces
 
-    - match: (?=\"[{{param_sep}}])
-      set: string-quoted-continue
-
-    # Only a closing brace terminates a quoted braces variable substitution
+    # Only a closing brace terminates a braces variable substitution
     - match: (?=[}])
       pop: true
 
@@ -486,6 +478,10 @@ contexts:
   variable-substitution-began-quoted-braces-continue-unquoted:
     # variable.other applied by variable-substitution-begin-quoted-braces
 
+    # Only a closing brace terminates a braces variable substitution
+    - match: (?=[}])
+      pop: true
+
     # Switch to quoted variable
     - match: \"
       scope:
@@ -498,10 +494,7 @@ contexts:
   variable-substitution-began-quoted-bare-continue-quoted:
     - meta_content_scope: variable.other.bare.execline
 
-    - match: (?=\"[{{param_sep}}])
-      set: string-quoted-continue
-
-    # Any braces terminate a quoted bare variable substitution
+    # Any braces terminate a bare variable substitution
     - match: (?=[{}])
       set: string-quoted-continue
 
@@ -517,6 +510,14 @@ contexts:
   variable-substitution-began-quoted-bare-continue-unquoted:
     - meta_content_scope: variable.other.bare.execline
 
+    # An unquoted space terminates an unquoted bare variable substitution
+    - match: (?=[{{param_sep}}])
+      pop: true
+
+    # Any braces terminate a bare variable substitution
+    - match: (?=[{}])
+      pop: true
+
     # Switch to quoted variable
     - match: \"
       scope:
@@ -526,10 +527,42 @@ contexts:
 
     - include: variable-substitution-unquoted-common
 
-  variable-substitution-began-unquoted-continue-quoted:
+  variable-substitution-began-unquoted-braces-continue-quoted:
     # variable.other applied by variable-substitution-begin-unquoted
 
-    # Any braces terminate an unquoted variable substitution
+    # Only a closing brace terminates a braces variable substitution
+    - match: (?=[}])
+      pop: true
+
+    # Switch into an unquoted variable
+    - match: \"
+      scope:
+        string.quoted.execline
+        punctuation.definition.string.end.execline
+      set: variable-substitution-began-unquoted-braces-continue-unquoted
+
+    - include: variable-substitution-quoted-common
+
+  variable-substitution-began-unquoted-braces-continue-unquoted:
+    # variable.other applied by variable-substitution-begin-unquoted
+
+    # Only a closing brace terminates a braces variable substitution
+    - match: (?=[}])
+      pop: true
+
+    # Switch to quoted variable
+    - match: \"
+      scope:
+        string.quoted.execline
+        punctuation.definition.string.begin.execline
+      set: variable-substitution-began-unquoted-braces-continue-quoted
+
+    - include: variable-substitution-unquoted-common
+
+  variable-substitution-began-unquoted-bare-continue-quoted:
+    # variable.other applied by variable-substitution-begin-unquoted
+
+    # Any braces terminate a bare variable substitution
     - match: (?=[{}])
       pop: true
 
@@ -538,18 +571,26 @@ contexts:
       scope:
         string.quoted.execline
         punctuation.definition.string.end.execline
-      set: variable-substitution-began-unquoted-continue-unquoted
+      set: variable-substitution-began-unquoted-bare-continue-unquoted
 
     - include: variable-substitution-quoted-common
 
-  variable-substitution-began-unquoted-continue-unquoted:
+  variable-substitution-began-unquoted-bare-continue-unquoted:
     # variable.other applied by variable-substitution-begin-unquoted
+
+    # An unquoted space terminates an unquoted bare variable substitution
+    - match: (?=[{{param_sep}}])
+      pop: true
+
+    # Any braces terminate a bare variable substitution
+    - match: (?=[{}])
+      pop: true
 
     # Switch to quoted variable
     - match: \"
       scope:
         string.quoted.execline
         punctuation.definition.string.begin.execline
-      set: variable-substitution-began-unquoted-continue-quoted
+      set: variable-substitution-began-unquoted-bare-continue-quoted
 
     - include: variable-substitution-unquoted-common
