@@ -285,6 +285,9 @@ foreground { echo "${foo} bar" baz }
 #!                       ^ - variable.other
 #!                             ^^^ meta.string.unquoted
 
+foreground { echo $var"ia}ble" }
+#!                       ^^^^^ - variable
+
 foreground { $cmd out --opt="$setting1" -a$setting2 -- $param }
 #!           ^^^^ meta.function-call.name variable.function variable.other.bare meta.string.unquoted
 #!                           ^^^^^^^^ meta.function-call.parameter.option.long variable.other.bare string.quoted

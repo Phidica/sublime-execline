@@ -355,11 +355,7 @@ contexts:
 
     # Apply meta_scope and handle escapes
     - match: ''
-      push:
-        - meta_scope: meta.string.unquoted.execline
-        - match: (?=[{{param_sep}}"$])
-          pop: true
-        - include: string-unquoted-patterns
+      push: string-unquoted-continue
 
   string-unquoted-patterns:
     # Escaping a literal newline in an unquoted string will turn it into a word
@@ -369,6 +365,14 @@ contexts:
     # Everything can be "escaped" in unquoted strings, whether it has other meanings or not
     - match: \\.
       scope: constant.character.escape.other.execline
+
+  string-unquoted-continue:
+    - meta_scope: meta.string.unquoted.execline
+
+    - match: (?=[{{param_sep}}"$])
+      pop: true
+
+    - include: string-unquoted-patterns
 
   variable-substitution-begin-quoted-braces:
     # Variable substitution that starts as a quoted string, but may continue to an unquoted string
@@ -431,13 +435,7 @@ contexts:
       scope:
         meta.string.unquoted.execline
         punctuation.definition.variable.sign.execline
-      set:
-        - [
-            {meta_scope:
-              variable.other.bare.execline},
-            {match: '', pop: true},
-          ]
-        - variable-substitution-began-unquoted-bare-continue-unquoted
+      set: variable-substitution-began-unquoted-bare-continue-unquoted
 
   variable-substitution-quoted-common:
     # Start a new variable if we encounter one
@@ -576,11 +574,11 @@ contexts:
     - include: variable-substitution-unquoted-common
 
   variable-substitution-began-unquoted-bare-continue-quoted:
-    # variable.other applied by variable-substitution-begin-unquoted
+    - meta_scope: variable.other.bare.execline
 
     # Any braces terminate a bare variable substitution
     - match: (?=[{}])
-      pop: true
+      set: string-quoted-continue
 
     # Switch into an unquoted variable
     - match: \"
@@ -592,15 +590,15 @@ contexts:
     - include: variable-substitution-quoted-common
 
   variable-substitution-began-unquoted-bare-continue-unquoted:
-    # variable.other applied by variable-substitution-begin-unquoted
+    - meta_scope: variable.other.bare.execline
 
     # Unquoted whitespace terminates an unquoted variable substitution
     - match: (?=[{{param_sep}}])
-      pop: true
+      set: string-unquoted-continue
 
     # Any braces terminate a bare variable substitution
     - match: (?=[{}])
-      pop: true
+      set: string-unquoted-continue
 
     # Switch to quoted variable
     - match: \"
