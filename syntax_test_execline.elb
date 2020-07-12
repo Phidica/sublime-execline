@@ -3,7 +3,7 @@
 foreground { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
 #! ^^^^^^^ meta.function-call.name keyword.control.block meta.string.unquoted
-#!         ^^^^^^^^^^^^ meta.braces.block-command
+#!         ^^^^^^^^^^^^ meta.braces.block.run.program
 #!         ^ punctuation.section.braces.begin
 #!           ^^^^ meta.function-call.name variable.function meta.string.unquoted
 #!                ^^^ meta.function-call.parameter.argument meta.string.unquoted
@@ -55,7 +55,7 @@ foreground {}
 #! <- comment.line
 
 foreground { }
-#!         ^^^ meta.function-call.block meta.braces.block-command
+#!         ^^^ meta.function-call.block meta.braces.block.run.program
 
 # comment
 #! <- comment.line
@@ -78,7 +78,7 @@ foreground { echo --arg -arg arg } foreground { echo arg # comment
 #!                ^^^^^ meta.function-call.parameter.option.long variable.parameter
 #!                      ^^^^ meta.function-call.parameter.option.short variable.parameter
 #!                           ^^^ meta.function-call.parameter.argument
-#!                               ^ meta.braces.block-command punctuation.section.braces.end
+#!                               ^ meta.braces.block.run.program punctuation.section.braces.end
 #!                                              ^^^^ meta.function-call.name variable.function
 #!                                              ^^^^^^^^ meta.function-call
 #!                                                       ^ punctuation.definition.comment
