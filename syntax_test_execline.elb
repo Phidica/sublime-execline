@@ -168,16 +168,22 @@ foreground { echo \} \$ \\ \{}
 #!    ^^ constant.character.escape.newline
 }
 
-foreground { echo $var ${var} $$var ${${var}} }
+foreground { echo $var ${var}arg $$var ${${var}arg}arg }
 #!                ^^^^ variable.other.bare meta.string.unquoted
 #!                ^ punctuation.definition.variable.sign
 #!                     ^^^^^^ variable.other.braces meta.string.unquoted
 #!                     ^ punctuation.definition.variable.sign
 #!                      ^ punctuation.definition.variable.begin
 #!                          ^ punctuation.definition.variable.end
-#!                            ^^^^^ variable.other.bare meta.string.unquoted
-#!                                  ^^^^^^^^^ variable.other.braces meta.string.unquoted
-#!                                  ^^^^^^^^^ - meta.string.unquoted meta.string.unquoted
+#!                           ^^^ - variable
+#!                               ^^^^^ variable.other.bare meta.string.unquoted
+#!                                     ^^^^^^^^^^^^ variable.other.braces meta.string.unquoted
+#!                                     ^^^^^^^^^^^^^^^ - meta.string.unquoted meta.string.unquoted
+#!                                             ^^^^^^^ - variable variable
+
+foreground { echo ${$var}iable $var"{arst" }
+#!                       ^^^^^ - variable
+#!                                  ^^^^^ - variable
 
 foreground { echo ${var{} arg ${wont work} ${ nope} }
 #!                  ^^^^^ variable.other.braces
@@ -205,7 +211,7 @@ var
 #!  ^^ variable.other.braces meta.string.unquoted constant.character.escape.newline
 }
 
-foreground { echo $var"iable" arg $"var"iable }
+foreground { echo $var"iable" arg $"var"iable ${var"iable}arg" }
 #!                ^^^^^^^^^^^ variable.other.bare
 #!                ^^^^ meta.string.unquoted
 #!                    ^^^^^^^ string.quoted
@@ -219,8 +225,11 @@ foreground { echo $var"iable" arg $"var"iable }
 #!                                 ^^^^^ - meta.string.unquoted
 #!                                      ^^^^^ meta.string.unquoted
 #!                                      ^^^^^ - string.quoted
+#!                                                       ^ string.quoted punctuation.definition.variable.end
+#!                                                        ^^^^ string.quoted
+#!                                                        ^^^^ - variable
 
-foreground { echo "$var" "${var}" "$$var" "${${var}}" }
+foreground { echo "$var" "${var}" "${$var}" "$$var" "${${var}}" }
 #!                ^^^^^^ string.quoted
 #!                 ^^^^ variable.other.bare
 #!                 ^ punctuation.definition.variable.sign
@@ -231,11 +240,15 @@ foreground { echo "$var" "${var}" "$$var" "${${var}}" }
 #!                         ^ punctuation.definition.variable.begin
 #!                             ^ punctuation.definition.variable.end
 #!                               ^ - string.quoted
-#!                                 ^^^^^ variable.other.bare
-#!                                       ^ - string.quoted
-#!                                         ^^^^^^^^^ variable.other.braces
-#!                                           ^^^^^^ variable.other.braces variable.other.braces
-#!                                                   ^ - string.quoted
+#!                                 ^^^^^^^ variable.other.braces
+#!                                   ^^^^ variable.other.braces variable.other.bare
+#!                                       ^ punctuation.definition.variable.end
+#!                                         ^ - string.quoted
+#!                                           ^^^^^ variable.other.bare
+#!                                                 ^ - string.quoted
+#!                                                   ^^^^^^^^^ variable.other.braces
+#!                                                     ^^^^^^ variable.other.braces variable.other.braces
+#!                                                             ^ - string.quoted
 
 foreground {
   echo "$\v\a\r" "${\v\a\r}"
@@ -267,6 +280,25 @@ foreground { echo "$var iable" "$var"iable "$"var"iable" "${"var"}" }
 #!                                                        ^^^^^^^^ variable.other.braces
 #!                                                        ^^^^^^^^ - variable.other.braces variable.other.braces
 #!                                                           ^^^ - string.quoted
+
+foreground { echo "${"var}str "${v"ar}str "${" str }
+#!                 ^^^^^^^ variable
+#!                        ^^^ - variable
+#!                             ^^^^^^^ variable
+#!                                    ^^^ - variable
+#!                                             ^^^ - variable
+
+foreground { echo "${${$var}}s"tr "${$va"r}str }
+#!                 ^^^^^^^^^^ variable.other.braces
+#!                   ^^^^^^^ variable.other.braces variable.other.braces
+#!                     ^^^^ variable.other.braces variable.other.braces variable.other.bare
+#!                         ^ punctuation.definition.variable.end
+#!                          ^ punctuation.definition.variable.end
+#!                           ^^^^ - variable
+#!                                 ^^^^^^^^ variable.other.braces
+#!                                   ^^^^^ variable.other.braces variable.other.bare
+#!                                        ^ punctuation.definition.variable.end
+#!                                         ^^^ - variable
 
 foreground { echo $foo{} {$foo} "$foo{}" "{$foo}bar" "${foo{}" }
 #!                    ^^ - variable.other

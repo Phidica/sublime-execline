@@ -17,6 +17,10 @@ scope: source.shell.execline
 # - Hence, variable substitution can span both unquoted and quoted strings, continuing as long as it doesn't encounter whitespace.
 # - This means that we need to treat variable substitution as very closely linked to string types, in order to track whether a subsitution is still occurring multiple string types later.
 
+# Limitations:
+
+# - Successive closing braces after a variable substitution will continue to issue clear_scopes and progressively wipe away all the meta_scope's that are active on that argument. Fortunately this all goes away the moment unquoted whitespace is encountered, and shouldn't be something that intentionally happens in execline scripts, so is considered a fair trade-off.
+
 # Use [A-Za-z0-9_]+ for these internal variable names
 variables:
   # Separator whitespace - Delimits command names, parameters, etc
@@ -332,11 +336,8 @@ contexts:
       scope: string.quoted.execline punctuation.definition.string.end.execline
       pop: true
 
-    # We *push* the braces type because after the closing brace, we have to return to a normal string behaviour (right here). We *set* the bare type because the end of a parameter, and hence the end of the string itself, can stop it, and in that case it must handle the end of the string itself. This is very different to way unquoted variables are handled
-    - match: (?=\$\{)
-      push: variable-substitution-begin-quoted-braces
     - match: (?=\$)
-      set: variable-substitution-begin-quoted-bare
+      set: variable-substitution-begin-quoted
 
     # Apply meta_scope and handle escapes
     - match: ''
@@ -374,75 +375,57 @@ contexts:
 
     - include: string-unquoted-patterns
 
-  variable-substitution-begin-quoted-braces:
+  variable-substitution-begin-quoted:
     # Variable substitution that starts as a quoted string, but may continue to an unquoted string
 
     - match: (\$)(\{)
       captures:
-        1: string.quoted.execline punctuation.definition.variable.sign.execline
-        2: string.quoted.execline punctuation.definition.variable.begin.execline
+        0: string.quoted.execline
+        1: punctuation.definition.variable.sign.execline
+        2: punctuation.definition.variable.begin.execline
       set:
-        - meta_scope: variable.other.braces.execline
+        - [
+            {meta_scope: variable.other.braces.execline},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-quoted-continue
 
-        # TODO: Unquoted whitespace very ungracefully terminates a braces variable substitution. In truth it should cancel any implication the substitution ever tried to occur
-        # - match: (?=[{{param_sep}}])
-        #   pop: true
-
-        - match: \}
-          scope:
-            string.quoted.execline
-            punctuation.definition.variable.end.execline
-          pop: true
-
-        - match: ''
-          push: variable-substitution-began-quoted-braces-continue-quoted
-
-  variable-substitution-begin-quoted-bare:
-    # Don't use a meta_scope to set variable.other.bare because we never pop back.
-    # We never pop back because we aren't embedded in another context, allowing us to set into whatever context the variable ended as, even if it was different to the context it started as
+    # Can't use variable-substitution-quoted-continue and the meta_scope/clear_scopes approach, because a '}' would get variable.bare
     - match: \$
       scope:
         variable.other.bare.execline
         string.quoted.execline
         punctuation.definition.variable.sign.execline
       set:
-        - variable-substitution-began-quoted-bare-continue-quoted
+        - variable-substitution-quoted-continue-bare
 
   variable-substitution-begin-unquoted:
     # Variable substitution that starts as an unquoted string, but may contain quoted strings
 
     - match: (\$)(\{)
       captures:
-        1: meta.string.unquoted.execline punctuation.definition.variable.sign.execline
-        2: meta.string.unquoted.execline punctuation.definition.variable.begin.execline
+        0: meta.string.unquoted.execline
+        1: punctuation.definition.variable.sign.execline
+        2: punctuation.definition.variable.begin.execline
       set:
-        - meta_scope: variable.other.braces.execline
+        - [
+            {meta_scope: variable.other.braces.execline},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-unquoted-continue
 
-        # Unquoted whitespace very ungracefully terminates a braces variable substitution. In truth it should cancel any implication the substitution ever tried to occur
-        - match: (?=[{{param_sep}}])
-          pop: true
-
-        - match: \}
-          scope:
-            meta.string.unquoted.execline
-            punctuation.definition.variable.end.execline
-          pop: true
-
-        - match: (?!\})
-          push: variable-substitution-began-unquoted-braces-continue-unquoted
-
+    # Can't use variable-substitution-unquoted-continue and the meta_scope/clear_scopes approach, because a '}' would get variable.bare
     - match: \$
       scope:
+        variable.other.bare.execline
         meta.string.unquoted.execline
         punctuation.definition.variable.sign.execline
-      set: variable-substitution-began-unquoted-bare-continue-unquoted
+      set: variable-substitution-unquoted-continue-bare
 
   variable-substitution-quoted-common:
     # Start a new variable if we encounter one
-    - match: (?=\$\{)
-      set: variable-substitution-begin-quoted-braces
     - match: (?=\$)
-      set: variable-substitution-begin-quoted-bare
+      set: variable-substitution-begin-quoted
 
     # Put the appropriate meta_scope on all characters, and handle quoted escapes
     - match: ''
@@ -453,6 +436,10 @@ contexts:
         - include: string-quoted-patterns
 
   variable-substitution-unquoted-common:
+    # Unquoted whitespace ends parameter, terminates variable substitution
+    - match: (?=[{{param_sep}}])
+      pop: true
+
     # Start a new variable if we encounter one
     - match: (?=\$)
       set: variable-substitution-begin-unquoted
@@ -465,146 +452,78 @@ contexts:
           pop: true
         - include: string-unquoted-patterns
 
-  variable-substitution-began-quoted-braces-continue-quoted:
-    # variable.other applied by variable-substitution-begin-quoted-braces
+  variable-substitution-quoted-continue:
+    # Assume a closing brace is terminating a braces variable substitution
+    - match: \}
+      scope:
+        string.quoted.execline
+        punctuation.definition.variable.end.execline
+      set:
+        - [
+            {clear_scopes: 1},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-quoted-continue
 
-    # Only a closing brace terminates a braces variable substitution
-    - match: (?=[}])
-      pop: true
-
-    # Switch into an unquoted variable
+    # Switch to unquoted string
     - match: \"
       scope:
         string.quoted.execline
         punctuation.definition.string.end.execline
-      set: variable-substitution-began-quoted-braces-continue-unquoted
+      set: variable-substitution-unquoted-continue
 
     - include: variable-substitution-quoted-common
 
-  variable-substitution-began-quoted-braces-continue-unquoted:
-    # variable.other applied by variable-substitution-begin-quoted-braces
+  variable-substitution-unquoted-continue:
+    # Assume a closing brace is terminating a braces variable substitution
+    - match: \}
+      scope:
+        meta.string.unquoted.execline
+        punctuation.definition.variable.end.execline
+      set:
+        - [
+            {clear_scopes: 1},
+            {match: '', pop: true},
+          ]
+        - variable-substitution-unquoted-continue
 
-    # TODO: Unquoted whitespace terminates an unquoted variable substitution
-    # - match: (?=[{{param_sep}}])
-    #   pop: true
-
-    # Only a *closing* brace terminates a braces variable substitution
-    - match: (?=[}])
-      pop: true
-
-    # Switch to quoted variable
+    # Switch to quoted string
     - match: \"
       scope:
         string.quoted.execline
         punctuation.definition.string.begin.execline
-      set: variable-substitution-began-quoted-braces-continue-quoted
+      set: variable-substitution-quoted-continue
 
     - include: variable-substitution-unquoted-common
 
-  variable-substitution-began-quoted-bare-continue-quoted:
+  variable-substitution-quoted-continue-bare:
     - meta_content_scope: variable.other.bare.execline
 
     # Any braces terminate a bare variable substitution
     - match: (?=[{}])
-      set: string-quoted-continue
+      set: variable-substitution-quoted-continue
 
-    # Switch into an unquoted variable
+    # Switch to unquoted variable
     - match: \"
       scope:
         string.quoted.execline
         punctuation.definition.string.end.execline
-      set: variable-substitution-began-quoted-bare-continue-unquoted
+      set: variable-substitution-unquoted-continue-bare
 
     - include: variable-substitution-quoted-common
 
-  variable-substitution-began-quoted-bare-continue-unquoted:
+  variable-substitution-unquoted-continue-bare:
     - meta_content_scope: variable.other.bare.execline
 
-    # Unquoted whitespace terminates an unquoted variable substitution
-    - match: (?=[{{param_sep}}])
-      pop: true
-
     # Any braces terminate a bare variable substitution
     - match: (?=[{}])
-      pop: true
+      set: variable-substitution-unquoted-continue
 
     # Switch to quoted variable
     - match: \"
       scope:
         string.quoted.execline
         punctuation.definition.string.begin.execline
-      set: variable-substitution-began-quoted-bare-continue-quoted
-
-    - include: variable-substitution-unquoted-common
-
-  variable-substitution-began-unquoted-braces-continue-quoted:
-    # variable.other applied by variable-substitution-begin-unquoted
-
-    # Only a closing brace terminates a braces variable substitution
-    - match: (?=[}])
-      pop: true
-
-    # Switch into an unquoted variable
-    - match: \"
-      scope:
-        string.quoted.execline
-        punctuation.definition.string.end.execline
-      set: variable-substitution-began-unquoted-braces-continue-unquoted
-
-    - include: variable-substitution-quoted-common
-
-  variable-substitution-began-unquoted-braces-continue-unquoted:
-    # variable.other applied by variable-substitution-begin-unquoted
-
-    # Unquoted whitespace terminates an unquoted variable substitution
-    - match: (?=[{{param_sep}}])
-      pop: true
-
-    # Only a *closing* brace terminates a braces variable substitution
-    - match: (?=[}])
-      pop: true
-
-    # Switch to quoted variable
-    - match: \"
-      scope:
-        string.quoted.execline
-        punctuation.definition.string.begin.execline
-      set: variable-substitution-began-unquoted-braces-continue-quoted
-
-    - include: variable-substitution-unquoted-common
-
-  variable-substitution-began-unquoted-bare-continue-quoted:
-    - meta_scope: variable.other.bare.execline
-
-    # Any braces terminate a bare variable substitution
-    - match: (?=[{}])
-      set: string-quoted-continue
-
-    # Switch into an unquoted variable
-    - match: \"
-      scope:
-        string.quoted.execline
-        punctuation.definition.string.end.execline
-      set: variable-substitution-began-unquoted-bare-continue-unquoted
-
-    - include: variable-substitution-quoted-common
-
-  variable-substitution-began-unquoted-bare-continue-unquoted:
-    - meta_scope: variable.other.bare.execline
-
-    # Unquoted whitespace terminates an unquoted variable substitution
-    - match: (?=[{{param_sep}}])
-      set: string-unquoted-continue
-
-    # Any braces terminate a bare variable substitution
-    - match: (?=[{}])
-      set: string-unquoted-continue
-
-    # Switch to quoted variable
-    - match: \"
-      scope:
-        string.quoted.execline
-        punctuation.definition.string.begin.execline
-      set: variable-substitution-began-unquoted-bare-continue-quoted
+      set: variable-substitution-quoted-continue-bare
 
     - include: variable-substitution-unquoted-common
