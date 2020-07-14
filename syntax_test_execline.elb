@@ -38,15 +38,22 @@ foreground { echo one} {two }\  \ } }
 foreground { echo {} { indented } {
 #!                ^^ meta.string.unquoted
 #!                ^^ - punctuation
-#!                   ^^^^^^^^^^^^ meta.function-call.block meta.function-call
+#!                   ^^^^^^^^^^^^ meta.braces.block.plain
 #!                   ^ meta.string.unquoted
 #!                   ^ - punctuation
 #!                              ^ meta.string.unquoted
 #!                              ^ - punctuation
+#!                                ^ meta.braces.block.plain
 # comment
 #! <- comment.line
 }  }
 #! ^ punctuation.section.braces.end
+
+foreground {
+  echo arg { arg } { arg } arg
+  #! ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call meta.function-call
+  #!                       ^^^ meta.function-call.parameter.argument
+}
 
 foreground {}
 #!         ^^ invalid.illegal.block
@@ -328,3 +335,21 @@ foreground { $cmd out --opt="$setting1" -a$setting2 -- $param }
 
 foreground { "$cmd" out }
 #!            ^^^^ meta.function-call.name variable.function variable.other.bare string.quoted
+
+background -d { echo out }
+#! ^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+#! ^^^^^^^ meta.function-call.name keyword.control.block meta.string.unquoted
+#!         ^^ meta.function-call.parameter.option.short variable.parameter
+#!            ^ punctuation.section.braces.begin
+
+background {}
+#!         ^^ invalid.illegal.block
+
+foreground {
+  background -d {
+    echo
+#!  ^^^^ variable.function
+  }
+#!^ punctuation.section.braces.end
+}
+#! <- punctuation.section.braces.end

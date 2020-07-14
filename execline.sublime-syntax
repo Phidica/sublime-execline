@@ -62,7 +62,7 @@ contexts:
 
   separator-whitespace:
     # Fundamental structure used to separate elements of a command line
-    - match: '{{ws_sep}}+'
+    - match: '[{{ws_sep}}]+'
       scope: meta.function-call.execline
 
   parameter:
@@ -160,8 +160,6 @@ contexts:
             meta.string.unquoted.execline
             constant.numeric.execline
 
-        - include: block-plain
-
         # Use standard parameter patterns for whatever doesn't match the above
         - match: (?!\s)
           push:
@@ -195,6 +193,25 @@ contexts:
       push:
         - block-run-prog
 
+    - match: background(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.block.execline
+        meta.string.unquoted.execline
+      push:
+        - block-run-prog
+        - command-call-chainload-opt-list
+
+  command-call-chainload-opt-list:
+    # Capture a list of options that don't take arguments
+
+    - include: separator-whitespace
+    - include: comment
+
+    - include: parameter-option
+    - match: (?!-)
+      pop: true
+
   command-call-standard:
     # Check if the command is any other legal command, ie, a standard command
 
@@ -207,6 +224,7 @@ contexts:
             # Allowed elements (now forcibly using arguments, no more options)
             {include: separator-whitespace},
             {include: comment},
+            {include: block-plain},
             {include: parameter-argument},
           ]
         - [
@@ -223,6 +241,7 @@ contexts:
             # Allowed elements (including options)
             {include: separator-whitespace},
             {include: comment},
+            {include: block-plain},
             {include: parameter},
           ]
         - [
@@ -276,7 +295,7 @@ contexts:
       scope:
         meta.function-call.parameter.argument.execline
         meta.string.unquoted.execline
-      set:
+      push:
         - meta_scope: meta.braces.block.plain.execline
         - match: \}(?=[{{param_sep}}])
           scope:
