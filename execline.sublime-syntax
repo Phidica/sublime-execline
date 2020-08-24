@@ -69,7 +69,7 @@ contexts:
     # We define the fundamental units passed to a command as "parameters", where those which start with a hyphen are "options" and those which don't are "arguments"
     # Parameters are implemented as a sequence of non-operator characters separated by unescaped and unscoped whitespace
 
-    # Order important because the parameter-argument rule doesn't exclude things that look like options
+    # Order important because the parameter-argument context doesn't exclude things that look like options
     - include: parameter-option
     - include: parameter-argument
 
@@ -99,13 +99,15 @@ contexts:
             - match: (?=[{{param_sep}}=])
               pop: true
 
-            # We mimic the parameter-common context but use a tweaked unquoted string pattern which excludes '='
-
-            - include: variable-substitution-unquoted
+            # We would use the parameter-common context, but we need to exclude '=' from unquoted strings
 
             - include: string-quoted
 
-            - match: (?=[^"])
+            - match: (?=\$)
+              push: variable-substitution-begin-unquoted
+              # Limitation: '=' isn't able to end this context
+
+            - match: ''
               push:
                 - meta_scope: meta.string.unquoted.execline
                 - match: (?=[{{param_sep}}{"$=])

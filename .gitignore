@@ -13,3 +13,4 @@ package-metadata.json
 
 .gitlint
 *_sec.*
+*_sec/
