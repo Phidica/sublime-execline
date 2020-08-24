@@ -31,6 +31,8 @@ variables:
   # This is a single element
   block_end: \}(?:[{{ws_sep}}]|$)
 
+  block_punc: '[{}](?:[{{ws_sep}}]|$)'
+
   # Parameter separators - Can break apart parameters
   param_sep: '{{ws_sep}}'
 
@@ -82,7 +84,10 @@ contexts:
 
   parameter-option:
     # For optimum usefulness to the user, only option parameters receive the variable.parameter scope
+    - include: parameter-option-long
+    - include: parameter-option-short
 
+  parameter-option-long:
     # Long option (parameter starting with two hyphens)
     - match: (?=--)
       push:
@@ -131,6 +136,7 @@ contexts:
 
             - include: parameter-common
 
+  parameter-option-short:
     # Short option (parameter starting with one hyphen)
     - match: -(?=[^{{param_sep}}])
       scope:
@@ -202,17 +208,65 @@ contexts:
         meta.string.unquoted.execline
       push:
         - block-run-prog
-        - command-call-chainload-opt-list
+        - command-call-common-opt-arg-weak-list-&pop
 
-  command-call-chainload-opt-list:
-    # Capture a list of options that don't take arguments
+    - match: runblock(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.block.runblock.execline
+        meta.string.unquoted.execline
+      push:
+        - [ {include: command-call-common-arg-&pop} ]
+        - [
+            {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
+            {include: parameter-option-short},
+            {include: command-call-common-aside-&pop},
+          ]
 
+  command-call-common-aside-&pop:
+    # Allow some "asides" (whitespace, comments), then pop
     - include: separator-whitespace
     - include: comment
-
-    - include: parameter-option
-    - match: (?!-)
+    - match: (?=.) # Allow multiline traversal
       pop: true
+
+  command-call-common-arg-&pop:
+    # Exactly one argument
+    - include: parameter-argument
+    - match: ''
+      pop: true
+
+  command-call-common-opt-arg-&pop:
+    # A short option followed by an argument
+    - match: (?=-[^{{param_sep}}])
+      push:
+        - [ {include: command-call-common-arg-&pop} ]
+        - [ {include: command-call-common-aside-&pop} ]
+        - [
+            # Exactly one option
+            {include: parameter-option-short},
+            {match: '', pop: true},
+          ]
+
+    - match: ''
+      pop: true
+
+  command-call-common-opt-arg-weak-list-&pop:
+    # A series of short options where each might be followed by an argument
+    - match: (?=-[^{{param_sep}}])
+      push:
+        - [
+            # End at block punctuation or after one argument
+            {match: '(?={{block_punc}})', pop: true},
+            {include: command-call-common-arg-&pop},
+          ]
+        - [
+            # Eat one or more sequential short options
+            {include: parameter-option-short},
+            {include: command-call-common-aside-&pop},
+          ]
+
+    - include: command-call-common-aside-&pop
 
   command-call-standard:
     # Check if the command is any other legal command, ie, a standard command

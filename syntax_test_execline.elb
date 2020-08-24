@@ -351,11 +351,59 @@ background -d { echo out }
 background {}
 #!         ^^ invalid.illegal.block
 
-foreground {
-  background -d {
+foreground
+#
+{
+#!<-punctuation.section.braces.begin
+  background
+#!^^^^^^^^^^ meta.function-call.name keyword.control.block
+  -d
+#!^^ meta.function-call.parameter.option.short variable.parameter
+  {
+#!^punctuation.section.braces.begin
     echo
 #!  ^^^^ variable.function
   }
 #!^ punctuation.section.braces.end
 }
 #! <- punctuation.section.braces.end
+
+foreground { runblock 1 echo > }
+#!           ^^^^^^^^ meta.function-call.name support.function.block meta.string.unquoted
+#!                    ^ meta.function-call.parameter.argument
+#!                      ^^^^ meta.function-call.name variable.function meta.string.unquoted
+
+foreground { runblock -d -n 3 1 echo > }
+#!                    ^^ meta.function-call.parameter.option.short
+#!                       ^^ meta.function-call.parameter.option.short
+#!                          ^ meta.function-call.parameter.argument
+#!                            ^ meta.function-call.parameter.argument
+#!                              ^^^^ meta.function-call.name
+
+foreground { runblock -d 1 echo > }
+#!                    ^^ meta.function-call.parameter.option.short
+#!                       ^ meta.function-call.parameter.argument
+#!                         ^^^^ meta.function-call.name
+
+foreground {
+  runblock
+#!^^^^^^^^ support.function.block.runblock
+  -d
+#!^^ meta.function-call.parameter.option.short
+  -n
+#!^^ meta.function-call.parameter.option.short
+  3
+#!^ meta.function-call.parameter.argument
+  1
+#!^ meta.function-call.parameter.argument
+  echo >
+#!^^^^ meta.function-call.name
+}
+
+foreground { runblock 1 background { echo bg } echo > }
+#!           ^^^^^^^^ meta.function-call.name support.function.block meta.string.unquoted
+#!                    ^ meta.function-call.parameter.argument
+#!                      ^^^^^^^^^^ meta.function-call.name keyword.control.block
+#!                                 ^ punctuation.section.braces.begin
+#!                                           ^ punctuation.section.braces.end
+#!                                             ^^^^ meta.function-call.name variable.function
