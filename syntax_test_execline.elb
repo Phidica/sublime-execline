@@ -407,3 +407,9 @@ foreground { runblock 1 background { echo bg } echo > }
 #!                                 ^ punctuation.section.braces.begin
 #!                                           ^ punctuation.section.braces.end
 #!                                             ^^^^ meta.function-call.name variable.function
+
+foreground { runblock -n3 1 echo > }
+#!                    ^^meta.function-call.parameter.option.short
+#!                      ^ meta.function-call.parameter.argument
+#!                        ^ meta.function-call.parameter.argument
+#!                          ^^^^ meta.function-call.name

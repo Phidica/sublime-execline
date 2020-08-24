@@ -85,7 +85,7 @@ contexts:
   parameter-option:
     # For optimum usefulness to the user, only option parameters receive the variable.parameter scope
     - include: parameter-option-long
-    - include: parameter-option-short
+    - include: parameter-option-short-group
 
   parameter-option-long:
     # Long option (parameter starting with two hyphens)
@@ -136,8 +136,9 @@ contexts:
 
             - include: parameter-common
 
-  parameter-option-short:
+  parameter-option-short-group:
     # Short option (parameter starting with one hyphen)
+    # In this form, characters after the first are treated as grouped options
     - match: -(?=[^{{param_sep}}])
       scope:
         punctuation.definition.option.short.execline
@@ -149,6 +150,25 @@ contexts:
         - match: (?=[{{param_sep}}])
           pop: true
         - include: parameter-common
+
+  parameter-option-short-single:
+    # Short option (parameter starting with one hyphen)
+    # In this form, characters after the first are not consumed so that they may be captured elsewhere as the argument
+    - match: -(?=[^{{param_sep}}])
+      scope:
+        punctuation.definition.option.short.execline
+        meta.string.unquoted.execline
+      push:
+        - meta_scope:
+            meta.function-call.parameter.option.short.execline
+            variable.parameter.execline
+        - match: ((\").(\"))|(.)
+          captures:
+            1: string.quoted.execline
+            2: punctuation.definition.string.begin.execline
+            3: punctuation.definition.string.end.execline
+            4: meta.string.unquoted.execline
+          pop: true
 
   parameter-argument:
     # Arguments are a type of parameter never treated like options by the command they are passed to
@@ -219,7 +239,7 @@ contexts:
         - [ {include: command-call-common-arg-&pop} ]
         - [
             {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
-            {include: parameter-option-short},
+            {include: parameter-option-short-group},
             {include: command-call-common-aside-&pop},
           ]
 
@@ -244,7 +264,7 @@ contexts:
         - [ {include: command-call-common-aside-&pop} ]
         - [
             # Exactly one option
-            {include: parameter-option-short},
+            {include: parameter-option-short-single},
             {match: '', pop: true},
           ]
 
@@ -262,7 +282,7 @@ contexts:
           ]
         - [
             # Eat one or more sequential short options
-            {include: parameter-option-short},
+            {include: parameter-option-short-group},
             {include: command-call-common-aside-&pop},
           ]
 
