@@ -239,8 +239,7 @@ contexts:
         - [ {include: command-call-common-arg-&pop} ]
         - [
             {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
-            {include: parameter-option-short-group},
-            {include: command-call-common-aside-&pop},
+            {include: command-call-common-opt-list-&pop},
           ]
 
   command-call-common-aside-&pop:
@@ -251,13 +250,13 @@ contexts:
       pop: true
 
   command-call-common-arg-&pop:
-    # Exactly one argument
+    # Pop after exactly one argument
     - include: parameter-argument
     - match: ''
       pop: true
 
   command-call-common-opt-arg-&pop:
-    # A short option followed by an argument
+    # A short option followed by an argument. Pop after one pair
     - match: (?=-[^{{param_sep}}])
       push:
         - [ {include: command-call-common-arg-&pop} ]
@@ -271,8 +270,21 @@ contexts:
     - match: ''
       pop: true
 
+  command-call-common-opt-list-&pop:
+    # A series of short options without arguments. Pop at an argument or after an end-of-options parameter
+    - match: --(?=[{{param_sep}}])
+      scope:
+        meta.function-call.parameter.option.end.execline
+        variable.parameter.execline
+        punctuation.definition.option.end.execline
+        meta.string.unquoted.execline
+      set: command-call-common-aside-&pop
+
+    - include: parameter-option-short-group
+    - include: command-call-common-aside-&pop
+
   command-call-common-opt-arg-weak-list-&pop:
-    # A series of short options where each might be followed by an argument
+    # A series of short options where each might be followed by an argument. Pop at an extra argument or block punctuation
     - match: (?=-[^{{param_sep}}])
       push:
         - [

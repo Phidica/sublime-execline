@@ -413,3 +413,8 @@ foreground { runblock -n3 1 echo > }
 #!                      ^ meta.function-call.parameter.argument
 #!                        ^ meta.function-call.parameter.argument
 #!                          ^^^^ meta.function-call.name
+
+foreground { runblock -d -- -1 echo > }
+#!                       ^^ meta.function-call.parameter.option.end
+#!                          ^^ - meta.function-call.parameter.option
+#!                             ^^^^ meta.function-call.name
