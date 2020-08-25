@@ -457,3 +457,32 @@ foreground { umask -S u=rwx,g=rx,o=rx echo }
 #!                 ^^ meta.function-call.parameter.option
 #!                    ^^^^^^^^^^^^^^^ meta.function-call.parameter.argument
 #!                                    ^^^^ variable.function
+
+foreground { wait }
+#!           ^^^^ support.function.state.wait
+#!                ^ punctuation.section.braces.end
+
+foreground { wait 1 2 3 echo }
+#!                ^ constant.numeric
+#!                  ^ constant.numeric
+#!                    ^ constant.numeric
+#!                      ^ - variable.function
+
+foreground { wait 1 {
+#!                  ^ - punctuation.section.braces.begin
+# comment
+#!<- comment.line
+  echo
+#!^^^^ - variable.function
+}
+
+foreground { wait -i -t9 { 1
+#!                       ^ punctuation.section.braces.begin
+#!                         ^ constant.numeric
+# comment
+#!<- comment.line
+  2 3 } echo }
+#!^ constant.numeric
+#!  ^ constant.numeric
+#!    ^ punctuation.section.braces.end
+#!      ^^^^ variable.function

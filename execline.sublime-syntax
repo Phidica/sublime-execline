@@ -31,6 +31,8 @@ variables:
   # This is a single element
   block_end: \}(?:[{{ws_sep}}]|$)
 
+  # TODO: Clean up
+  block_begin: \{(?:[{{ws_sep}}]|$)
   block_punc: '[{}](?:[{{ws_sep}}]|$)'
 
   # Parameter separators - Can break apart parameters
@@ -307,6 +309,32 @@ contexts:
         - command-call-common-arg-&pop
         - command-call-common-opt-list-&pop
 
+    - match: wait(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.wait.execline
+        meta.string.unquoted.execline
+      push:
+        # wait [ -I | -i ] [ -r | -t timeout ] { [ pids... ] } prog...
+        # wait [ -I | -i ] [ -r | -t timeout ] [ pids... ] # Then exit (POSIX)
+        - [
+            # If we see a block, we have the form that chainloads
+            {match: '(?={{block_begin}})', set: block-run-arg},
+            # Else we have a list of PIDs (read arbitrary number of arguments) and no chainload
+            {match: '', set:
+              [
+                {match: '(?={{block_end}})', pop: true},
+                {include: separator-whitespace},
+                {include: comment},
+                {include: parameter-argument},
+              ]
+            },
+          ]
+        - [
+            {match: '(?=-t)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
     # Scripting
 
     - match: runblock(?=[{{param_sep}}])
@@ -432,7 +460,6 @@ contexts:
 
   block-run-prog:
     # A block that will somehow be evaluated ("run") and is expected to contain a properly formed program line
-    # TODO: This contrasts with a context block-run-params that doesn't contain a program line
 
     # Possibly preceded by whitespace and comments
     - include: separator-whitespace
@@ -450,6 +477,33 @@ contexts:
 
         # The inside of this block is indistinguishable from the base environment
         - include: main
+
+    # We're requiring a block, so anything else showing up is a problem
+    # Just capture one whitespace-delimited word, then stop complaining
+    - match: \S+
+      scope: invalid.illegal.block.execline
+      pop: true
+
+  block-run-arg:
+    # A block that will somehow be evaluated ("run") and is expected to contain arbitrary text read as arguments
+
+    # Possibly preceded by whitespace and comments
+    - include: separator-whitespace
+    - include: comment
+
+    - match: \{(?=[{{param_sep}}])
+      scope: punctuation.section.braces.begin.execline
+      set:
+        - meta_scope:
+            meta.function-call.block.execline
+            meta.braces.block.run.program.execline
+        - match: \}(?=[{{param_sep}}]|$)
+          scope: punctuation.section.braces.end.execline
+          pop: true
+
+        - include: separator-whitespace
+        - include: comment
+        - include: parameter-argument
 
     # We're requiring a block, so anything else showing up is a problem
     # Just capture one whitespace-delimited word, then stop complaining
