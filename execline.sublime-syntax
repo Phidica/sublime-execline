@@ -206,17 +206,19 @@ contexts:
             {match: '(?={{block_end}})', pop: true},
             {include: separator-whitespace},
             {include: comment},
-            {include: command-call-chainload},
+            {include: command-call-builtin},
             {include: command-call-standard},
           ]
 
-  command-call-chainload:
-    # The "builtin" execline commands which are capable of chainloading further commands
+  command-call-builtin:
+    # The "builtin" execline commands, which may be capable of chainloading further commands
+
+    # Process state control
 
     - match: foreground(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.block.execline
+        keyword.control.state.foreground.execline
         meta.string.unquoted.execline
       push:
         - block-run-prog
@@ -224,16 +226,18 @@ contexts:
     - match: background(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.block.execline
+        keyword.control.state.background.execline
         meta.string.unquoted.execline
       push:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
+    # Scripting
+
     - match: runblock(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        support.function.block.runblock.execline
+        support.function.scripting.runblock.execline
         meta.string.unquoted.execline
       push:
         - [ {include: command-call-common-arg-&pop} ]

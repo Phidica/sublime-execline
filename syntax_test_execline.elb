@@ -2,7 +2,7 @@
 
 foreground { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
-#! ^^^^^^^ meta.function-call.name keyword.control.block meta.string.unquoted
+#! ^^^^^^^ meta.function-call.name keyword.control.state.foreground meta.string.unquoted
 #!         ^^^^^^^^^^^^ meta.braces.block.run.program
 #!         ^ punctuation.section.braces.begin
 #!           ^^^^ meta.function-call.name variable.function meta.string.unquoted
@@ -344,7 +344,7 @@ foreground { "$cmd" out }
 
 background -d { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
-#! ^^^^^^^ meta.function-call.name keyword.control.block meta.string.unquoted
+#! ^^^^^^^ meta.function-call.name keyword.control.state.background meta.string.unquoted
 #!         ^^ meta.function-call.parameter.option.short variable.parameter
 #!            ^ punctuation.section.braces.begin
 
@@ -356,7 +356,7 @@ foreground
 {
 #!<-punctuation.section.braces.begin
   background
-#!^^^^^^^^^^ meta.function-call.name keyword.control.block
+#!^^^^^^^^^^ meta.function-call.name keyword.control.state
   -d
 #!^^ meta.function-call.parameter.option.short variable.parameter
   {
@@ -369,7 +369,7 @@ foreground
 #! <- punctuation.section.braces.end
 
 foreground { runblock 1 echo > }
-#!           ^^^^^^^^ meta.function-call.name support.function.block meta.string.unquoted
+#!           ^^^^^^^^ meta.function-call.name support.function.scripting.runblock meta.string.unquoted
 #!                    ^ meta.function-call.parameter.argument
 #!                      ^^^^ meta.function-call.name variable.function meta.string.unquoted
 
@@ -387,7 +387,7 @@ foreground { runblock -d 1 echo > }
 
 foreground {
   runblock
-#!^^^^^^^^ support.function.block.runblock
+#!^^^^^^^^ support.function.scripting.runblock
   -d
 #!^^ meta.function-call.parameter.option.short
   -n
@@ -401,9 +401,9 @@ foreground {
 }
 
 foreground { runblock 1 background { echo bg } echo > }
-#!           ^^^^^^^^ meta.function-call.name support.function.block meta.string.unquoted
+#!           ^^^^^^^^ meta.function-call.name support.function.scripting meta.string.unquoted
 #!                    ^ meta.function-call.parameter.argument
-#!                      ^^^^^^^^^^ meta.function-call.name keyword.control.block
+#!                      ^^^^^^^^^^ meta.function-call.name keyword.control.state
 #!                                 ^ punctuation.section.braces.begin
 #!                                           ^ punctuation.section.braces.end
 #!                                             ^^^^ meta.function-call.name variable.function
