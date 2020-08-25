@@ -475,6 +475,9 @@ contexts:
           scope: punctuation.section.braces.end.execline
           pop: true
 
+        # (Pedantic) Scope any whitespace before the command name
+        - include: separator-whitespace
+
         # The inside of this block is indistinguishable from the base environment
         - include: main
 

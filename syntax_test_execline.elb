@@ -2,6 +2,7 @@
 
 foreground { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+#!          ^^^^^^^^^^ meta.function-call meta.function-call
 #! ^^^^^^^ meta.function-call.name keyword.control.state.foreground meta.string.unquoted
 #!         ^^^^^^^^^^^^ meta.braces.block.run.program
 #!         ^ punctuation.section.braces.begin
