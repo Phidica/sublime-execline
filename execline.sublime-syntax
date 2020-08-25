@@ -221,6 +221,7 @@ contexts:
         keyword.control.state.foreground.execline
         meta.string.unquoted.execline
       push:
+        # foreground { prog1... } prog2...
         - block-run-prog
 
     - match: background(?=[{{param_sep}}])
@@ -229,8 +230,82 @@ contexts:
         keyword.control.state.background.execline
         meta.string.unquoted.execline
       push:
+        # background [ -d ] { prog1... } prog2...
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
+
+    - match: exec(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.exec.execline
+        meta.string.unquoted.execline
+      push:
+        # exec [ -c ] [ -l ] [ -a argv0 ] prog...
+        - [
+            {match: '(?=-a)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: execline-cd(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.execline-cd.execline
+        meta.string.unquoted.execline
+      push:
+        # execline-cd dir prog...
+        - command-call-common-arg-&pop
+        - command-call-common-aside-&pop
+
+    - match: posix-cd(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.posix-cd.execline
+        meta.string.unquoted.execline
+      push:
+        # posix-cd [ -L | -P ] dir prog...
+        - command-call-common-arg-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: cd(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.cd.execline
+        meta.string.unquoted.execline
+      push:
+        # Match posix-cd because it is a superset of execline-cd
+        - command-call-common-arg-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: execline-umask(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.execline-umask.execline
+        meta.string.unquoted.execline
+      push:
+        # execline-umask mask prog...
+        - command-call-common-arg-&pop
+        - command-call-common-aside-&pop
+
+    - match: posix-umask(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.posix-umask.execline
+        meta.string.unquoted.execline
+      push:
+        # posix-umask [ -S ] [ mask ] [ prog... ]
+        # Both mask and prog... are optional, but if only one appears then it is taken as mask
+        - command-call-common-arg-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: umask(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.umask.execline
+        meta.string.unquoted.execline
+      push:
+        # Match posix-umask because it is a superset of execline-umask
+        - command-call-common-arg-&pop
+        - command-call-common-opt-list-&pop
 
     # Scripting
 
@@ -240,6 +315,7 @@ contexts:
         support.function.scripting.runblock.execline
         meta.string.unquoted.execline
       push:
+        # runblock [ -P ] [ -n argshift ] [ -r ] n cmd...
         - [ {include: command-call-common-arg-&pop} ]
         - [
             {match: '(?=-n)', push: command-call-common-opt-arg-&pop},

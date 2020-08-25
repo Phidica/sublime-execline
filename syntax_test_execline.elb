@@ -378,12 +378,12 @@ foreground { runblock -d -n 3 1 echo > }
 #!                       ^^ meta.function-call.parameter.option.short
 #!                          ^ meta.function-call.parameter.argument
 #!                            ^ meta.function-call.parameter.argument
-#!                              ^^^^ meta.function-call.name
+#!                              ^^^^ variable.function
 
 foreground { runblock -d 1 echo > }
 #!                    ^^ meta.function-call.parameter.option.short
 #!                       ^ meta.function-call.parameter.argument
-#!                         ^^^^ meta.function-call.name
+#!                         ^^^^ variable.function
 
 foreground {
   runblock
@@ -397,7 +397,7 @@ foreground {
   1
 #!^ meta.function-call.parameter.argument
   echo >
-#!^^^^ meta.function-call.name
+#!^^^^ variable.function
 }
 
 foreground { runblock 1 background { echo bg } echo > }
@@ -406,15 +406,54 @@ foreground { runblock 1 background { echo bg } echo > }
 #!                      ^^^^^^^^^^ meta.function-call.name keyword.control.state
 #!                                 ^ punctuation.section.braces.begin
 #!                                           ^ punctuation.section.braces.end
-#!                                             ^^^^ meta.function-call.name variable.function
+#!                                             ^^^^ variable.function
 
 foreground { runblock -n3 1 echo > }
 #!                    ^^meta.function-call.parameter.option.short
 #!                      ^ meta.function-call.parameter.argument
 #!                        ^ meta.function-call.parameter.argument
-#!                          ^^^^ meta.function-call.name
+#!                          ^^^^ variable.function
 
 foreground { runblock -d -- -1 echo > }
 #!                       ^^ meta.function-call.parameter.option.end
 #!                          ^^ - meta.function-call.parameter.option
-#!                             ^^^^ meta.function-call.name
+#!                             ^^^^ variable.function
+
+foreground { exec -a argv0 -l echo }
+#!           ^^^^ support.function.state.exec
+#!                   ^^^^^ meta.function-call.parameter.argument
+#!                         ^^ meta.function-call.parameter.option.short
+#!                            ^^^^ variable.function
+
+foreground { execline-cd -L echo }
+#!           ^^^^^^^^^^^ support.function.state.execline-cd
+#!                       ^^ - meta.function-call.parameter.option
+#!                          ^^^^ variable.function
+
+foreground { posix-cd -L dir echo }
+#!           ^^^^^^^^ support.function.state.posix-cd
+#!                    ^^ meta.function-call.parameter.option
+#!                       ^^^ meta.function-call.parameter.argument
+#!                           ^^^^ variable.function
+
+foreground { cd -L dir echo }
+#!           ^^ support.function.state.cd
+#!              ^^ meta.function-call.parameter.option
+#!                 ^^^ meta.function-call.parameter.argument
+#!                     ^^^^ variable.function
+
+foreground { execline-umask 0022 echo }
+#!           ^^^^^^^^^^^^^^ support.function.state.execline-umask
+#!                          ^^^^ meta.function-call.parameter.argument.numeric meta.string.unquoted constant.numeric
+#!                               ^^^^ variable.function
+
+foreground { posix-umask -S 0022 }
+#!           ^^^^^^^^^^^ support.function.state.posix-umask
+#!                       ^^ meta.function-call.parameter.option
+#!                          ^^^^ - variable.function
+
+foreground { umask -S u=rwx,g=rx,o=rx echo }
+#!           ^^^^^ support.function.state.umask
+#!                 ^^ meta.function-call.parameter.option
+#!                    ^^^^^^^^^^^^^^^ meta.function-call.parameter.argument
+#!                                    ^^^^ variable.function
