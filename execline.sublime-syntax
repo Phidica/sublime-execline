@@ -208,12 +208,13 @@ contexts:
             {match: '(?={{block_end}})', pop: true},
             {include: separator-whitespace},
             {include: comment},
-            {include: command-call-builtin},
+            {include: command-call-chainload},
             {include: command-call-standard},
           ]
 
-  command-call-builtin:
-    # The "builtin" execline commands, which may be capable of chainloading further commands
+  command-call-chainload:
+    # The "builtin" execline commands that are capable of chainloading further commands.
+    # The following builtins do not chainload, and hence do not need custom implementations because they are marked up by command-call-standard: exit, dollarat, execlineb, homeof
 
     # Process state control
 
@@ -321,14 +322,7 @@ contexts:
             # If we see a block, we have the form that chainloads
             {match: '(?={{block_begin}})', set: block-run-arg},
             # Else we have a list of PIDs (read arbitrary number of arguments) and no chainload
-            {match: '', set:
-              [
-                {match: '(?={{block_end}})', pop: true},
-                {include: separator-whitespace},
-                {include: comment},
-                {include: parameter-argument},
-              ]
-            },
+            {match: '', set: command-call-common-arg-list-&pop},
           ]
         - [
             {match: '(?=-t)', push: command-call-common-opt-arg-&pop},
@@ -357,6 +351,16 @@ contexts:
     - match: (?=.) # Allow multiline traversal
       pop: true
 
+  command-call-common-end-of-options-&pop:
+    # End of options (parameter of just two hyphens)
+    - match: --(?=[{{param_sep}}])
+      scope:
+        meta.function-call.parameter.option.end.execline
+        variable.parameter.execline
+        punctuation.definition.option.end.execline
+        meta.string.unquoted.execline
+      set: command-call-common-aside-&pop
+
   command-call-common-arg-&pop:
     # Pop after exactly one argument
     - include: parameter-argument
@@ -380,16 +384,19 @@ contexts:
 
   command-call-common-opt-list-&pop:
     # A series of short options without arguments. Pop at an argument or after an end-of-options parameter
-    - match: --(?=[{{param_sep}}])
-      scope:
-        meta.function-call.parameter.option.end.execline
-        variable.parameter.execline
-        punctuation.definition.option.end.execline
-        meta.string.unquoted.execline
-      set: command-call-common-aside-&pop
-
+    - include: command-call-common-end-of-options-&pop
     - include: parameter-option-short-group
     - include: command-call-common-aside-&pop
+
+  command-call-common-arg-list-&pop:
+    # A series of arguments. Pop at the end of a block
+    # NOTE: This context should almost never be needed for the implementation of a builtin, because it means such a builtin is behaving exactly as a standard command
+    - match: (?={{block_end}})
+      pop: true
+    - include: separator-whitespace
+    - include: comment
+    - include: block-plain
+    - include: parameter-argument
 
   command-call-common-opt-arg-weak-list-&pop:
     # A series of short options where each might be followed by an argument. Pop at an extra argument or block punctuation
@@ -415,24 +422,15 @@ contexts:
     - match: (?=\S)
       set:
         - [
-            {match: '(?={{block_end}})', pop: true},
-
             # Allowed elements (now forcibly using arguments, no more options)
-            {include: separator-whitespace},
-            {include: comment},
-            {include: block-plain},
-            {include: parameter-argument},
+            # Pop only at end of a block
+            {include: command-call-common-arg-list-&pop},
           ]
         - [
             {match: '(?={{block_end}})', pop: true},
 
-            # End of options (parameter of just two hyphens)
-            {match: '--(?=[{{param_sep}}])', scope:
-              meta.function-call.parameter.option.end.execline
-              variable.parameter.execline
-              punctuation.definition.option.end.execline
-              meta.string.unquoted.execline,
-            pop: true},
+            # Pop this context and enter the one which only recognises arguments
+            {include: command-call-common-end-of-options-&pop},
 
             # Allowed elements (including options)
             {include: separator-whitespace},
@@ -499,14 +497,13 @@ contexts:
       set:
         - meta_scope:
             meta.function-call.block.execline
-            meta.braces.block.run.program.execline
+            meta.braces.block.run.arguments.execline
         - match: \}(?=[{{param_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
 
-        - include: separator-whitespace
-        - include: comment
-        - include: parameter-argument
+        - match: ''
+          push: command-call-common-arg-list-&pop
 
     # We're requiring a block, so anything else showing up is a problem
     # Just capture one whitespace-delimited word, then stop complaining
@@ -515,7 +512,9 @@ contexts:
       pop: true
 
   block-plain:
-    # A block that will get expanded by execlineb, but is just plain parameters somewhere in a standard command. Used to ensure brace balancing
+    # A block that will get expanded by execlineb, but occurs as part of incidental parameters to a command. Used to ensure brace balancing.
+    # The parameters may well look like options, but because execlineb will prepend them with an extra space they won't be seen as options by the command. Mark them up as plain arguments.
+    # This is also important for builtins that use block-run-arg, because certainly nothing that looks like an option in those is ever going to be interpreted as one by the relevant builtin
     - match: \{(?=[{{param_sep}}])
       scope:
         meta.function-call.parameter.argument.execline
@@ -531,7 +530,7 @@ contexts:
         # All the normal command call behaviour in here
         - include: separator-whitespace
         - include: comment
-        - include: parameter
+        - include: parameter-argument
 
   comment:
     # A full or inline comment

@@ -473,9 +473,10 @@ foreground { wait 1 {
 #!                  ^ - punctuation.section.braces.begin
 # comment
 #!<- comment.line
-  echo
+  echo } # Braces still need balancing
 #!^^^^ - variable.function
 }
+#!<- punctuation.section.braces.end
 
 foreground { wait -i -t9 { 1
 #!                       ^ punctuation.section.braces.begin
