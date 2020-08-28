@@ -1,9 +1,9 @@
 %YAML 1.2
-# http://www.sublimetext.com/docs/3/syntax.html
+# https://www.sublimetext.com/docs/3/syntax.html
 
 ---
 
-# http://www.skarnet.org/software/execline/index.html
+# https://skarnet.org/software/execline/
 name: Execline
 file_extensions:
   - elb
