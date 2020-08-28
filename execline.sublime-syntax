@@ -329,6 +329,19 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
+    - match: trap(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.state.trap.execline
+        meta.string.unquoted.execline
+      push:
+        # trap [ -x ] [ -t millisecs ] { sigcodes and actions } prog...
+        - [ {include: block-trap} ]
+        - [
+            {match: '(?=-t)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
     # Scripting
 
     - match: runblock(?=[{{param_sep}}])
@@ -504,6 +517,49 @@ contexts:
 
         - match: ''
           push: command-call-common-arg-list-&pop
+
+    # We're requiring a block, so anything else showing up is a problem
+    # Just capture one whitespace-delimited word, then stop complaining
+    - match: \S+
+      scope: invalid.illegal.block.execline
+      pop: true
+
+  block-trap:
+    # The block used by the "trap" builtin
+
+    - match: \{(?=[{{param_sep}}])
+      scope: punctuation.section.braces.begin.execline
+      set:
+        - meta_scope:
+            meta.function-call.block.execline
+            meta.braces.block.trap.execline
+        - match: \}(?=[{{param_sep}}]|$)
+          scope: punctuation.section.braces.end.execline
+          pop: true
+
+        - include: separator-whitespace
+        - include: comment
+
+        - match: |-
+            (?x)
+            (?i) (?# Ignore case)
+            (
+              timeout
+              |
+              6[0-4]|[1-5]?[0-9] (?# 0 to 64, though 0 appears to have no function when used)
+              |
+              (?:sig)?(?:hup|int|quit|ill|trap|abrt|iot|bus|emt|fpe|kill|usr1|segv|usr2|pipe|alrm|term|stkflt|chld|cld|cont|stop|tstp|ttin|ttou|urg|xcpu|xfsz|vtalrm|prof|winch|io|poll|pwr|info|lost|sys|unused)
+            )\b
+            |
+            (
+              \S+
+            )
+          captures:
+            1: meta.function-call.parameter.argument.execline meta.string.unquoted.execline constant.language.sigcode.execline
+            2: invalid.illegal.constant.language.sigcode.execline
+          push:
+            - block-run-prog
+            - command-call-common-aside-&pop
 
     # We're requiring a block, so anything else showing up is a problem
     # Just capture one whitespace-delimited word, then stop complaining

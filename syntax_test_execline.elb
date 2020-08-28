@@ -488,3 +488,46 @@ foreground { wait -i -t9 { 1
 #!  ^ constant.numeric
 #!    ^ punctuation.section.braces.end
 #!      ^^^^ variable.function
+
+foreground { trap
+#!           ^^^^ support.function.state.trap
+  {
+#!^ meta.braces.block.trap punctuation.section.braces.begin
+  hup
+#!^^^ meta.braces.block.trap meta.function-call.parameter.argument constant.language.sigcode
+    {
+#!  ^ punctuation.section.braces.begin
+      true
+#!    ^^^^ variable.function
+    }
+#!  ^ punctuation.section.braces.end
+  HUP { true } hUp { true } hups { true }
+#!^^^ constant.language.sigcode
+#!             ^^^ constant.language.sigcode
+#!                          ^^^^ invalid.illegal.constant.language.sigcode
+  siGkiLl { true } sigkills { true } 9kill { true } sig { true }
+#!^^^^^^^ constant.language.sigcode
+#!                 ^^^^^^^^ invalid.illegal.constant.language.sigcode
+#!                                   ^^^^^ invalid.illegal.constant.language.sigcode
+#!                                                  ^^^ invalid.illegal.constant.language.sigcode
+  0 { true } 1 { true } 31 { true } 64 { true } 111 { true } 65 { true }
+#!^ constant.language.sigcode
+#!           ^ constant.language.sigcode
+#!                      ^^ constant.language.sigcode
+#!                                  ^^ constant.language.sigcode
+#!                                              ^^^ invalid.illegal.constant.language.sigcode
+#!                                                           ^^ invalid.illegal.constant.language.sigcode
+  timeout { true } tImEoUt { true } timeouts { true } 1timeout { true }
+#!^^^^^^^ constant.language.sigcode
+#!                 ^^^^^^^ constant.language.sigcode
+#!                                  ^^^^^^^^ invalid.illegal.constant.language.sigcode
+#!                                                    ^^^^^^^^ invalid.illegal.constant.language.sigcode
+  1 {}
+#!  ^^ invalid.illegal.block
+  } sleep 5
+#!^ punctuation.section.braces.end
+#!  ^^^^^ variable.function
+}
+
+foreground { trap {} echo out }
+#!                ^^ invalid.illegal.block
