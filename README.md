@@ -12,3 +12,12 @@ Planned features
 - Snippets (keywords).
 - Distribution via Package Control.
 - (If possible) Custom specification of signatures for user-defined functions.
+
+File extension
+--------------
+
+Technically this package is not for "execline" scripts, but rather `execlineb` scripts. The `execlineb` launcher is the only part of execline which understands *b*races (`{ }`) to delimit blocks, which it converts into the system of prepended spaces delimiting blocks which execline binaries understand.
+
+The only official way to exclusively indicate that a file is an `execlineb` script is to include a shebang that references `execlineb`. Some scripts distributed with execline use the `.txt` extension, but it would be inconvenient to override this extension to be recognised as execline in general.
+
+`.el` is already closely associated with Emacs Lisp. Therefore, `.elb` was chosen to serve as an unofficial file extension.
