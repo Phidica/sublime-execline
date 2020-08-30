@@ -533,3 +533,18 @@ foreground { trap
 
 foreground { trap {} echo out }
 #!                ^^ invalid.illegal.block
+
+if
+#!<- keyword.control.conditional.if
+  -X
+#!^^ meta.function-call.parameter.option.short
+  -n
+#!^^ meta.function-call.parameter.option.short
+  -x
+#!^^ meta.function-call.parameter.option.short
+  0
+#!^ meta.function-call.parameter.argument.numeric
+  { true }
+#!^ punctuation.section.braces.begin
+#!  ^^^^ variable.function
+#!       ^ punctuation.section.braces.end

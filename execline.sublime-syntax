@@ -342,6 +342,18 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
+    # Conditional
+
+    - match: if(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.conditional.if.execline
+        meta.string.unquoted.execline
+      push:
+        # if [ -X ] [ -n ] [ -t | -x exitcode ] { prog1... } prog2...
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
     # Scripting
 
     - match: runblock(?=[{{param_sep}}])
