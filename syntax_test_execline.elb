@@ -620,3 +620,31 @@ forbacktickx -o 1 k { gen }
 loopwhilex -o 0 foreground { echo }
 #!<- meta.function-call.name keyword.control.loop.loopwhilex meta.string.unquoted
 #!              ^^^^^^^^^^ meta.function-call.name
+
+fdclose 1
+#!<- meta.function-call.name keyword.control.redirection.fdclose meta.string.unquoted
+#!      ^ meta.function-call.parameter.argument.numeric constant.numeric
+
+fdblock -n 2
+#!<- keyword.control.redirection.fdblock
+#!      ^^ meta.function-call.parameter.option.short
+#!         ^ constant.numeric
+
+fdmove
+#!<- keyword.control.redirection.fdmove
+  -c
+#!^^ meta.function-call.parameter.option.short
+  1
+#!^ constant.numeric
+  2
+#!^ constant.numeric
+
+fdswap
+#!<- keyword.control.redirection.fdswap
+  1 2
+#!^ constant.numeric
+#!  ^ constant.numeric
+
+fdreserve 3
+#!<- keyword.control.redirection.fdreserve
+#!        ^ constant.numeric

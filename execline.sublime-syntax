@@ -220,6 +220,7 @@ contexts:
     - include: command-call-chainload-state
     - include: command-call-chainload-conditional
     - include: command-call-chainload-loop
+    - include: command-call-chainload-redirection
     - include: command-call-chainload-scripting
 
   command-call-chainload-state:
@@ -459,6 +460,58 @@ contexts:
             {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
           ]
+
+  command-call-chainload-redirection:
+    # Redirection of file descriptors, and related FD controls
+
+    - match: fdclose(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.fdclose.execline
+        meta.string.unquoted.execline
+      push:
+        # fdclose fd prog...
+        - command-call-common-arg-aside-&pop
+
+    - match: fdblock(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.fdblock.execline
+        meta.string.unquoted.execline
+      push:
+        # fdblock [ -n ] fd prog...
+        - command-call-common-arg-now-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: fdmove(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.fdmove.execline
+        meta.string.unquoted.execline
+      push:
+        # fdmove [ -c ] fdto fdfrom prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-arg-now-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: fdswap(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.fdswap.execline
+        meta.string.unquoted.execline
+      push:
+        # fdswap fd1 fd2 prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-arg-aside-&pop
+
+    - match: fdreserve(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.fdreserve.execline
+        meta.string.unquoted.execline
+      push:
+        # fdreserve n prog...
+        - command-call-common-arg-aside-&pop
 
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
