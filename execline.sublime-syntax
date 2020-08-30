@@ -398,6 +398,67 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
+    # Loop
+
+    - match: forx(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.loop.forx.execline
+        meta.string.unquoted.execline
+      push:
+        # forx [ -p ] [ -o okcodes | -x breakcodes ] variable { args... } loop...
+        - [ {include: block-run-arg} ]
+        - [ {include: command-call-common-arg-&pop} ]
+        - [
+            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: forstdin(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.loop.forstdin.execline
+        meta.string.unquoted.execline
+      push:
+        # forstdin [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable loop...
+        - [ {include: command-call-common-arg-&pop} ]
+        - [
+            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: forbacktickx(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.loop.forbacktickx.execline
+        meta.string.unquoted.execline
+      push:
+        # forbacktickx [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable { gen... } loop...
+        - [ {include: block-run-prog} ]
+        - [ {include: command-call-common-arg-&pop} ]
+        - [
+            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: loopwhilex(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.loop.loopwhilex.execline
+        meta.string.unquoted.execline
+      push:
+        # loopwhilex [ -n ] [ -o okcodes | -x breakcodes ] prog...
+        - [
+            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
     # Scripting
 
     - match: runblock(?=[{{param_sep}}])
