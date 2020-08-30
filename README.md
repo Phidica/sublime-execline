@@ -20,4 +20,4 @@ Technically this package is not for "execline" scripts, but rather `execlineb` s
 
 The only official way to exclusively indicate that a file is an `execlineb` script is to include a shebang that references `execlineb`. Some scripts distributed with execline use the `.txt` extension, but it would be inconvenient to override this extension to be recognised as execline in general.
 
-`.el` is already closely associated with Emacs Lisp. Therefore, `.elb` was chosen to serve as an unofficial file extension.
+`.el` is already closely associated with Emacs Lisp. Therefore, `.elb` was chosen to serve as an unofficial file extension, which is tested as an alternative if a shebang referencing `execlineb` is not found.
