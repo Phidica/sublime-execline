@@ -586,6 +586,7 @@ contexts:
         # All the normal command call behaviour in here
         - include: separator-whitespace
         - include: comment
+        - include: block-plain
         - include: parameter-argument
 
   comment:

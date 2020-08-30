@@ -47,6 +47,8 @@ foreground { echo {} { indented } {
 #!                                ^ meta.braces.block.plain
 # comment
 #! <- comment.line
+  { a }
+#!^^^^^ meta.braces.block.plain meta.braces.block.plain
 }  }
 #! ^ punctuation.section.braces.end
 
