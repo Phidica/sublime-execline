@@ -491,6 +491,14 @@ foreground { wait -i -t9 { 1
 #!    ^ punctuation.section.braces.end
 #!      ^^^^ variable.function
 
+foreground { wait -t#
+#!                  ^ - comment.line
+  -t # comment
+#!^^ meta.function-call.parameter.option.short variable.parameter
+#!   ^ punctuation.definition.comment
+1 }
+#!^ punctuation.section.braces.end
+
 foreground { trap
 #!           ^^^^ support.function.state.trap
   {

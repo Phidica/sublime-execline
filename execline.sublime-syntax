@@ -505,8 +505,16 @@ contexts:
     # A short option followed by an argument. Pop after one pair
     - match: (?=-[^{{param_sep}}])
       push:
-        - [ {include: command-call-common-arg-&pop} ]
-        - [ {include: command-call-common-aside-&pop} ]
+        - [
+            # Allow comments before the arg if there's whitespace first
+            {match: '(?={{ws_sep}})', set: [
+                command-call-common-arg-&pop,
+                command-call-common-aside-&pop,
+              ]
+            },
+            # Or go directly to the argument
+            {match: '', set: command-call-common-arg-&pop},
+          ]
         - [
             # Exactly one option
             {include: parameter-option-short-single},
