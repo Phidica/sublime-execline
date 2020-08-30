@@ -263,8 +263,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # execline-cd dir prog...
-        - command-call-common-arg-&pop
-        - command-call-common-aside-&pop
+        - command-call-common-arg-aside-&pop
 
     - match: posix-cd(?=[{{param_sep}}])
       scope:
@@ -273,7 +272,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # posix-cd [ -L | -P ] dir prog...
-        - command-call-common-arg-&pop
+        - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
     - match: cd(?=[{{param_sep}}])
@@ -283,7 +282,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # Match posix-cd because it is a superset of execline-cd
-        - command-call-common-arg-&pop
+        - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
     - match: execline-umask(?=[{{param_sep}}])
@@ -293,8 +292,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # execline-umask mask prog...
-        - command-call-common-arg-&pop
-        - command-call-common-aside-&pop
+        - command-call-common-arg-aside-&pop
 
     - match: posix-umask(?=[{{param_sep}}])
       scope:
@@ -304,7 +302,7 @@ contexts:
       push:
         # posix-umask [ -S ] [ mask ] [ prog... ]
         # Both mask and prog... are optional, but if only one appears then it is taken as mask
-        - command-call-common-arg-&pop
+        - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
     - match: umask(?=[{{param_sep}}])
@@ -314,7 +312,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # Match posix-umask because it is a superset of execline-umask
-        - command-call-common-arg-&pop
+        - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
     - match: wait(?=[{{param_sep}}])
@@ -417,7 +415,7 @@ contexts:
       push:
         # forx [ -p ] [ -o okcodes | -x breakcodes ] variable { args... } loop...
         - [ {include: block-run-arg} ]
-        - [ {include: command-call-common-arg-&pop} ]
+        - [ {include: command-call-common-arg-now-&pop} ]
         - [
             {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -430,7 +428,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # forstdin [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable loop...
-        - [ {include: command-call-common-arg-&pop} ]
+        - [ {include: command-call-common-arg-now-&pop} ]
         - [
             {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -444,7 +442,7 @@ contexts:
       push:
         # forbacktickx [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable { gen... } loop...
         - [ {include: block-run-prog} ]
-        - [ {include: command-call-common-arg-&pop} ]
+        - [ {include: command-call-common-arg-now-&pop} ]
         - [
             {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -472,7 +470,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # runblock [ -P ] [ -n argshift ] [ -r ] n cmd...
-        - [ {include: command-call-common-arg-&pop} ]
+        - [ {include: command-call-common-arg-now-&pop} ]
         - [
             {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -495,11 +493,18 @@ contexts:
         meta.string.unquoted.execline
       set: command-call-common-aside-&pop
 
-  command-call-common-arg-&pop:
+  command-call-common-arg-now-&pop:
     # Pop after exactly one argument
     - include: parameter-argument
     - match: ''
       pop: true
+
+  command-call-common-arg-aside-&pop:
+    # Pop after exactly one argument, allowing for asides first
+    - match: ''
+      set:
+        - command-call-common-arg-now-&pop
+        - command-call-common-aside-&pop
 
   command-call-common-opt-arg-&pop:
     # A short option followed by an argument. Pop after one pair
@@ -507,13 +512,9 @@ contexts:
       push:
         - [
             # Allow comments before the arg if there's whitespace first
-            {match: '(?={{ws_sep}})', set: [
-                command-call-common-arg-&pop,
-                command-call-common-aside-&pop,
-              ]
-            },
+            {match: '(?={{ws_sep}})', set: command-call-common-arg-aside-&pop},
             # Or go directly to the argument
-            {match: '', set: command-call-common-arg-&pop},
+            {match: '', set: command-call-common-arg-now-&pop},
           ]
         - [
             # Exactly one option
@@ -547,7 +548,7 @@ contexts:
         - [
             # End at block punctuation or after one argument
             {match: '(?={{block_punc}})', pop: true},
-            {include: command-call-common-arg-&pop},
+            {include: command-call-common-arg-now-&pop},
           ]
         - [
             # Eat one or more sequential short options
