@@ -548,3 +548,45 @@ if
 #!^ punctuation.section.braces.begin
 #!  ^^^^ variable.function
 #!       ^ punctuation.section.braces.end
+
+ifelse -X { true } { echo true }
+#!<- keyword.control.conditional.ifelse
+#!     ^^ meta.function-call.parameter.option.short
+#!        ^ punctuation.section.braces.begin
+#!          ^^^^ variable.function
+#!               ^ punctuation.section.braces.end
+#!                 ^ punctuation.section.braces.begin
+#!                   ^^^^ variable.function
+#!                             ^ punctuation.section.braces.end
+
+ifte -n {
+#!<- keyword.control.conditional.ifte
+#!   ^^ meta.function-call.parameter.option.short
+#!      ^ punctuation.section.braces.begin
+  echo done
+#!^^^^ variable.function
+}
+#<- punctuation.section.braces.end
+{
+#!<- punctuation.section.braces.begin
+  echo fail
+#!^^^^ variable.function
+}
+#!<- punctuation.section.braces.end
+
+ifthenelse { true } {
+#!<- keyword.control.conditional.ifthenelse
+#!                ^ punctuation.section.braces.end
+#!                  ^ punctuation.section.braces.begin
+  echo true
+#!^^^^ variable.function
+} { echo false }
+#!<- punctuation.section.braces.end
+#!^ punctuation.section.braces.begin
+#!  ^^^^ variable.function
+#!             ^ punctuation.section.braces.end
+
+tryexec -l { ./LICENSE }
+#!<- meta.function-call.name keyword.control.conditional.tryexec meta.string.unquoted
+#!      ^^ meta.function-call.parameter.option.short
+#!                     ^ punctuation.section.braces.end

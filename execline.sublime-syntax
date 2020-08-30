@@ -350,7 +350,51 @@ contexts:
         keyword.control.conditional.if.execline
         meta.string.unquoted.execline
       push:
-        # if [ -X ] [ -n ] [ -t | -x exitcode ] { prog1... } prog2...
+        # if [ -X ] [ -n ] [ -t | -x exitcode ] { progif... } progthen...
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
+    - match: ifelse(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.conditional.ifelse.execline
+        meta.string.unquoted.execline
+      push:
+        # ifelse [ -X ] [ -n ] { progif... } { progthen... } progelse...
+        - block-run-prog
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
+    - match: ifte(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.conditional.ifte.execline
+        meta.string.unquoted.execline
+      push:
+        # ifte [ -X ] [ -n ] { progthen... } { progelse... } progif...
+        - block-run-prog
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
+    - match: ifthenelse(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.conditional.ifthenelse.execline
+        meta.string.unquoted.execline
+      push:
+        # ifthenelse [ -X ] [ -s ] { progif... } { progthen... } { progelse... } prog...
+        - block-run-prog
+        - block-run-prog
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
+    - match: tryexec(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.conditional.tryexec.execline
+        meta.string.unquoted.execline
+      push:
+        # tryexec [ -n ] [ -c ] [ -l ] [ -a argv0 ] { prog1... } prog2...
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 

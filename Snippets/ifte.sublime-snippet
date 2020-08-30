@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+ifte { ${1} } { ${2} }
+$0
+]]></content>
+	<tabTrigger>ifte</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>ifte { } { }</description>
+</snippet>

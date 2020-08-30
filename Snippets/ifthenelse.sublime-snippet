@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+ifthenelse { ${1} } { ${2} } { ${3} }
+$0
+]]></content>
+	<tabTrigger>ifthenelse</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>ifthenelse { } { } { }</description>
+</snippet>
