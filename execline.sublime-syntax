@@ -564,9 +564,9 @@ contexts:
     - match: (?=-[^{{param_sep}}])
       push:
         - [
-            # Allow comments before the arg if there's whitespace first
+            # If we see whitespace, allow comments before the arg
             {match: '(?={{ws_sep}})', set: command-call-common-arg-aside-&pop},
-            # Or go directly to the argument
+            # Else go directly to the argument
             {match: '', set: command-call-common-arg-now-&pop},
           ]
         - [
