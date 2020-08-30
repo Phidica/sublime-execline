@@ -419,8 +419,7 @@ contexts:
         - [ {include: block-run-arg} ]
         - [ {include: command-call-common-arg-&pop} ]
         - [
-            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
           ]
 
@@ -433,9 +432,7 @@ contexts:
         # forstdin [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable loop...
         - [ {include: command-call-common-arg-&pop} ]
         - [
-            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
           ]
 
@@ -449,9 +446,7 @@ contexts:
         - [ {include: block-run-prog} ]
         - [ {include: command-call-common-arg-&pop} ]
         - [
-            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
           ]
 
@@ -463,8 +458,7 @@ contexts:
       push:
         # loopwhilex [ -n ] [ -o okcodes | -x breakcodes ] prog...
         - [
-            {match: '(?=-o)', push: command-call-common-opt-arg-&pop},
-            {match: '(?=-x)', push: command-call-common-opt-arg-&pop},
+            {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
           ]
 
