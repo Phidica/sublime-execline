@@ -216,6 +216,13 @@ contexts:
     # The "builtin" execline commands that are capable of chainloading further commands.
     # The following builtins do not chainload, and hence do not need custom implementations because they are marked up by command-call-standard: exit, dollarat, execlineb, homeof
 
+    # These categories are not exactly mirrored from the execline documentation, however the order of commands within each of these categories follows the formal list where possible
+    - include: command-call-chainload-state
+    - include: command-call-chainload-conditional
+    - include: command-call-chainload-loop
+    - include: command-call-chainload-scripting
+
+  command-call-chainload-state:
     # Process state control
 
     - match: foreground(?=[{{param_sep}}])
@@ -342,7 +349,8 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    # Conditional
+  command-call-chainload-conditional:
+    # Conditional execution
 
     - match: if(?=[{{param_sep}}])
       scope:
@@ -398,7 +406,8 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    # Loop
+  command-call-chainload-loop:
+    # Looped execution
 
     - match: forx(?=[{{param_sep}}])
       scope:
@@ -459,7 +468,8 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    # Scripting
+  command-call-chainload-scripting:
+    # Scripting tools (options, positional parameters, blocks)
 
     - match: runblock(?=[{{param_sep}}])
       scope:
