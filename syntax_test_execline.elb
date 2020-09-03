@@ -648,3 +648,26 @@ fdswap
 fdreserve 3
 #!<- keyword.control.redirection.fdreserve
 #!        ^ constant.numeric
+
+redirfd -rwnb 1 myfile
+#!<- keyword.control.redirection.redirfd
+#!      ^^^^^ meta.function-call.parameter.option.short
+#!            ^ meta.function-call.parameter.argument.numeric
+#!              ^^^^^^ meta.function-call.parameter.argument
+
+pipeline -r { echo out }
+#!<- keyword.control.redirection.pipeline
+#!       ^^ meta.function-call.parameter.option.short
+#!          ^ punctuation.section.braces.begin
+#!            ^^^^ variable.function
+#!                     ^ punctuation.section.braces.end
+
+piperw $fdr $fdw
+#!<- keyword.control.redirection.piperw
+#!     ^^^^ meta.function-call.parameter.argument variable.other
+#!          ^^^^ meta.function-call.parameter.argument variable.other
+
+heredoc 0 "I'm here, doc"
+#!<- keyword.control.redirection.heredoc
+#!      ^ meta.function-call.parameter.argument.numeric
+#!        ^^^^^^^^^^^^^^^ meta.function-call.parameter.argument

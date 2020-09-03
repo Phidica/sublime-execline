@@ -513,6 +513,48 @@ contexts:
         # fdreserve n prog...
         - command-call-common-arg-aside-&pop
 
+    - match: redirfd(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.redirfd.execline
+        meta.string.unquoted.execline
+      push:
+        # redirfd [ -r | -w | -u | -a | -c | -x ] [ -n | -b ] fd file prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-arg-now-&pop
+        - command-call-common-opt-list-&pop
+
+    - match: pipeline(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.pipeline.execline
+        meta.string.unquoted.execline
+      push:
+        # pipeline [ -d ] [ -r | -w ] { prog1... } prog2...
+        - block-run-prog
+        - command-call-common-opt-arg-weak-list-&pop
+
+    - match: piperw(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.piperw.execline
+        meta.string.unquoted.execline
+      push:
+        # piperw fdr fdw prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-arg-aside-&pop
+
+    - match: heredoc(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.control.redirection.heredoc.execline
+        meta.string.unquoted.execline
+      push:
+        # heredoc [ -d ] fd string prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-arg-now-&pop
+        - command-call-common-opt-list-&pop
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 
