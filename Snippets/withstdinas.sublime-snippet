@@ -1,0 +1,10 @@
+<snippet>
+	<content><![CDATA[
+withstdinas ${1:variable}
+${2:importas -u ${1} ${1}}
+$0
+]]></content>
+	<tabTrigger>withstdinas</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>withstdinas</description>
+</snippet>
