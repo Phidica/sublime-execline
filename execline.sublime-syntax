@@ -570,6 +570,7 @@ contexts:
 
   command-call-chainload-variable:
     # Environment variables and variable substitutions
+    # Generally, treat environment variable assignment as being more fundamental and "keyword-worthy" than variable substitution...but it is a very arbitrary distinction
 
     - match: emptyenv(?=[{{param_sep}}])
       scope:
@@ -606,6 +607,24 @@ contexts:
         meta.string.unquoted.execline
       push:
         # unexport var prog...
+        - command-call-common-variable-&pop
+
+    - match: getcwd(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.getcwd.execline
+        meta.string.unquoted.execline
+      push:
+        # getcwd var prog...
+        - command-call-common-variable-&pop
+
+    - match: getpid(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.getpid.execline
+        meta.string.unquoted.execline
+      push:
+        # getpid var prog...
         - command-call-common-variable-&pop
 
   command-call-chainload-scripting:

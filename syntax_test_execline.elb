@@ -693,3 +693,11 @@ export
 unexport var
 #!<- keyword.other.variable.unexport
 #!       ^^^ variable.other.assignment
+
+getcwd CWD
+#!<- keyword.other.variable.getcwd
+#!     ^^^ variable.other.assignment
+
+getpid PID
+#!<- keyword.other.variable.getpid
+#!     ^^^ variable.other.assignment
