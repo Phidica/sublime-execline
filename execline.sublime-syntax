@@ -198,6 +198,18 @@ contexts:
               pop: true
             - include: parameter-common
 
+  parameter-argument-variable:
+    # Argument that specifically will define a variable name
+
+    - match: (?=[^{{param_sep}}])
+      push:
+        - meta_scope:
+            meta.function-call.parameter.argument.execline
+            variable.other.assignment.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+        - include: parameter-common
+
   program-line:
     # A program-line is a long argv which will be exec'd into. It might be in a block, or it might be the whole script
 
@@ -221,6 +233,7 @@ contexts:
     - include: command-call-chainload-conditional
     - include: command-call-chainload-loop
     - include: command-call-chainload-redirection
+    - include: command-call-chainload-variable
     - include: command-call-chainload-scripting
 
   command-call-chainload-state:
@@ -555,6 +568,46 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
+  command-call-chainload-variable:
+    # Environment variables and variable substitutions
+
+    - match: emptyenv(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.emptyenv.execline
+        meta.string.unquoted.execline
+      push:
+        # emptyenv [ -p | -c | -o | -P ] prog...
+        - command-call-common-opt-list-&pop
+
+    - match: envfile(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.envfile.execline
+        meta.string.unquoted.execline
+      push:
+        # envfile file prog...
+        - command-call-common-arg-aside-&pop
+
+    - match: export(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.export.execline
+        meta.string.unquoted.execline
+      push:
+        # export var value prog...
+        - command-call-common-arg-aside-&pop
+        - command-call-common-variable-&pop
+
+    - match: unexport(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.unexport.execline
+        meta.string.unquoted.execline
+      push:
+        # unexport var prog...
+        - command-call-common-variable-&pop
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 
@@ -599,6 +652,16 @@ contexts:
     - match: ''
       set:
         - command-call-common-arg-now-&pop
+        - command-call-common-aside-&pop
+
+  command-call-common-variable-&pop:
+    # Pop after exactly one argument defining a variable, allowing for asides first
+    - match: ''
+      set:
+        - [
+            {include: parameter-argument-variable},
+            {match: '', pop: true},
+          ]
         - command-call-common-aside-&pop
 
   command-call-common-opt-arg-&pop:

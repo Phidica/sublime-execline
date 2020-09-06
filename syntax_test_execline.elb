@@ -671,3 +671,25 @@ heredoc 0 "I'm here, doc"
 #!<- keyword.control.redirection.heredoc
 #!      ^ meta.function-call.parameter.argument.numeric
 #!        ^^^^^^^^^^^^^^^ meta.function-call.parameter.argument
+
+foreground { emptyenv -cP echo }
+#!           ^^^^^^^^ support.function.variable.emptyenv
+#!                    ^^^ variable.parameter
+#!                        ^^^^ variable.function
+
+foreground { envfile -myfile echo }
+#!           ^^^^^^^ support.function.variable.envfile
+#!                   ^ - variable/parameter
+#!                           ^^^^ variable.function meta.string.unquoted
+
+export
+#!<- keyword.other.variable.export
+  var
+#!^^^ meta.function-call.parameter.argument variable.other.assignment meta.string.unquoted
+  value${foo}bar
+#!^^^^^^^^^^^^^^ meta.function-call.parameter.argument meta.string.unquoted
+#!     ^^^^^^ variable.other.braces
+
+unexport var
+#!<- keyword.other.variable.unexport
+#!       ^^^ variable.other.assignment
