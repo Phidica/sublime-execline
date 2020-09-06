@@ -627,6 +627,33 @@ contexts:
         # getpid var prog...
         - command-call-common-variable-&pop
 
+    - match: withstdinas(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.withstdinas.execline
+        meta.string.unquoted.execline
+      push:
+        # withstdinas [ -i | -I | -D default ] [ -n ] variable prog...
+        - [ {include: command-call-common-variable-&pop} ]
+        - [
+            {match: '(?=-D)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: backtick(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        keyword.other.variable.backtick.execline
+        meta.string.unquoted.execline
+      push:
+        # backtick [ -i | -I | -D default ] [ -n ] variable { prog1... } prog2...
+        - [ {include: block-run-prog} ]
+        - [ {include: command-call-common-variable-&pop} ]
+        - [
+            {match: '(?=-D)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 

@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+backtick ${1:variable} { ${2} }
+$0
+]]></content>
+	<tabTrigger>backtick</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>backtick { }</description>
+</snippet>
