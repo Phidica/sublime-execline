@@ -654,6 +654,34 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
+    - match: define(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.define.execline
+        meta.string.unquoted.execline
+      push:
+        # define [ -s ] [ -C | -c ] [ -n ] [ -d delim ] variable value prog...
+        - [ {include: command-call-common-arg-aside-&pop} ]
+        - [ {include: command-call-common-variable-&pop} ]
+        - [
+            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: importas(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.importas.execline
+        meta.string.unquoted.execline
+      push:
+        # importas [ -i | -D default ] [ -u ] [ -s ] [ -C | -c ] [ -n ] [ -d delim ] variable envvar prog...
+        - [ {include: command-call-common-variable-&pop} ]
+        - [ {include: command-call-common-variable-&pop} ]
+        - [
+            {match: '(?=-[Dd])', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 

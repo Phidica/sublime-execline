@@ -715,3 +715,23 @@ backtick -n MY_VAR { echo out }
 #!                 ^ punctuation.section.braces.begin
 #!                   ^^^^ variable.function
 #!                            ^ punctuation.section.braces.end
+
+foreground { define -C -d, var out echo $var }
+#!           ^^^^^^ support.function.variable.define
+#!                     ^^ variable.parameter
+#!                       ^ - variable.parameter
+#!                         ^^^ meta.function-call.parameter.argument variable.other.assignment
+#!                             ^^^ meta.function-call.parameter.argument
+#!                                 ^^^^ variable.function
+
+foreground { define -- -- foobar echo $-- }
+#!                     ^^ meta.function-call.parameter.argument variable.other.assignment
+#!                               ^^^^ variable.function
+#!                                    ^^^ variable.other.bare
+
+foreground { importas -u var MY_VAR echo $var }
+#!           ^^^^^^^^ support.function.variable.importas
+#!                    ^^ variable.parameter
+#!                       ^^^ meta.function-call.parameter.argument variable.other.assignment
+#!                           ^^^^^^ meta.function-call.parameter.argument variable.other.assignment
+#!                                  ^^^^ variable.function
