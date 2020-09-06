@@ -601,7 +601,7 @@ tryexec -l { ./LICENSE }
 
 forx -p -o 1,2 i { words }
 #!<- meta.function-call.name keyword.control.loop.forx meta.string.unquoted
-#!             ^ meta.function-call.parameter.argument meta.string.unquoted
+#!             ^ meta.function-call.parameter.argument variable.other.assignment meta.string.unquoted
 #!               ^ punctuation.section.braces.begin
 #!                 ^^^^^ meta.function-call.parameter.argument
 #!                       ^ punctuation.section.braces.end
@@ -610,11 +610,11 @@ forstdin -d, j
 #!<- meta.function-call.name keyword.control.loop.forstdin meta.string.unquoted
 #!       ^^ meta.function-call.parameter.option.short variable.parameter
 #!         ^ meta.function-call.parameter.argument meta.string.unquoted
-#!           ^ meta.function-call.parameter.argument
+#!           ^ meta.function-call.parameter.argument variable.other.assignment
 
 forbacktickx -o 1 k { gen }
 #!<- meta.function-call.name keyword.control.loop.forbacktickx meta.string.unquoted
-#!                ^ meta.function-call.parameter.argument
+#!                ^ meta.function-call.parameter.argument variable.other.assignment
 #!                    ^^^ variable.function
 
 loopwhilex -o 0 foreground { echo }

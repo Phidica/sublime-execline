@@ -429,7 +429,7 @@ contexts:
       push:
         # forx [ -p ] [ -o okcodes | -x breakcodes ] variable { args... } loop...
         - [ {include: block-run-arg} ]
-        - [ {include: command-call-common-arg-now-&pop} ]
+        - [ {include: command-call-common-variable-&pop} ]
         - [
             {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -442,7 +442,7 @@ contexts:
         meta.string.unquoted.execline
       push:
         # forstdin [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable loop...
-        - [ {include: command-call-common-arg-now-&pop} ]
+        - [ {include: command-call-common-variable-&pop} ]
         - [
             {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
@@ -456,7 +456,7 @@ contexts:
       push:
         # forbacktickx [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable { gen... } loop...
         - [ {include: block-run-prog} ]
-        - [ {include: command-call-common-arg-now-&pop} ]
+        - [ {include: command-call-common-variable-&pop} ]
         - [
             {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
