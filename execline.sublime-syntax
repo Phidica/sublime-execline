@@ -242,7 +242,7 @@ contexts:
     - match: foreground(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.state.foreground.execline
+        keyword.other.state.foreground.execline
         meta.string.unquoted.execline
       push:
         # foreground { prog1... } prog2...
@@ -251,7 +251,7 @@ contexts:
     - match: background(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.state.background.execline
+        keyword.other.state.background.execline
         meta.string.unquoted.execline
       push:
         # background [ -d ] { prog1... } prog2...
@@ -480,7 +480,7 @@ contexts:
     - match: fdclose(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.fdclose.execline
+        keyword.other.redirection.fdclose.execline
         meta.string.unquoted.execline
       push:
         # fdclose fd prog...
@@ -489,7 +489,7 @@ contexts:
     - match: fdblock(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.fdblock.execline
+        keyword.other.redirection.fdblock.execline
         meta.string.unquoted.execline
       push:
         # fdblock [ -n ] fd prog...
@@ -499,7 +499,7 @@ contexts:
     - match: fdmove(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.fdmove.execline
+        keyword.other.redirection.fdmove.execline
         meta.string.unquoted.execline
       push:
         # fdmove [ -c ] fdto fdfrom prog...
@@ -510,7 +510,7 @@ contexts:
     - match: fdswap(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.fdswap.execline
+        keyword.other.redirection.fdswap.execline
         meta.string.unquoted.execline
       push:
         # fdswap fd1 fd2 prog...
@@ -520,7 +520,7 @@ contexts:
     - match: fdreserve(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.fdreserve.execline
+        keyword.other.redirection.fdreserve.execline
         meta.string.unquoted.execline
       push:
         # fdreserve n prog...
@@ -529,7 +529,7 @@ contexts:
     - match: redirfd(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.redirfd.execline
+        keyword.other.redirection.redirfd.execline
         meta.string.unquoted.execline
       push:
         # redirfd [ -r | -w | -u | -a | -c | -x ] [ -n | -b ] fd file prog...
@@ -540,7 +540,7 @@ contexts:
     - match: pipeline(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.pipeline.execline
+        keyword.other.redirection.pipeline.execline
         meta.string.unquoted.execline
       push:
         # pipeline [ -d ] [ -r | -w ] { prog1... } prog2...
@@ -550,7 +550,7 @@ contexts:
     - match: piperw(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.piperw.execline
+        keyword.other.redirection.piperw.execline
         meta.string.unquoted.execline
       push:
         # piperw fdr fdw prog...
@@ -560,7 +560,7 @@ contexts:
     - match: heredoc(?=[{{param_sep}}])
       scope:
         meta.function-call.name.execline
-        keyword.control.redirection.heredoc.execline
+        keyword.other.redirection.heredoc.execline
         meta.string.unquoted.execline
       push:
         # heredoc [ -d ] fd string prog...

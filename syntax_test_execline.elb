@@ -3,7 +3,7 @@
 foreground { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
 #!          ^^^^^^^^^^ meta.function-call meta.function-call
-#! ^^^^^^^ meta.function-call.name keyword.control.state.foreground meta.string.unquoted
+#! ^^^^^^^ meta.function-call.name keyword.other.state.foreground meta.string.unquoted
 #!         ^^^^^^^^^^^^ meta.braces.block.run.program
 #!         ^ punctuation.section.braces.begin
 #!           ^^^^ meta.function-call.name variable.function meta.string.unquoted
@@ -347,7 +347,7 @@ foreground { "$cmd" out }
 
 background -d { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
-#! ^^^^^^^ meta.function-call.name keyword.control.state.background meta.string.unquoted
+#! ^^^^^^^ meta.function-call.name keyword.other.state.background meta.string.unquoted
 #!         ^^ meta.function-call.parameter.option.short variable.parameter
 #!            ^ punctuation.section.braces.begin
 
@@ -359,7 +359,7 @@ foreground
 {
 #!<-punctuation.section.braces.begin
   background
-#!^^^^^^^^^^ meta.function-call.name keyword.control.state
+#!^^^^^^^^^^ meta.function-call.name keyword.other.state
   -d
 #!^^ meta.function-call.parameter.option.short variable.parameter
   {
@@ -406,7 +406,7 @@ foreground {
 foreground { runblock 1 background { echo bg } echo > }
 #!           ^^^^^^^^ meta.function-call.name support.function.scripting meta.string.unquoted
 #!                    ^ meta.function-call.parameter.argument
-#!                      ^^^^^^^^^^ meta.function-call.name keyword.control.state
+#!                      ^^^^^^^^^^ meta.function-call.name keyword.other.state
 #!                                 ^ punctuation.section.braces.begin
 #!                                           ^ punctuation.section.braces.end
 #!                                             ^^^^ variable.function
@@ -622,16 +622,16 @@ loopwhilex -o 0 foreground { echo }
 #!              ^^^^^^^^^^ meta.function-call.name
 
 fdclose 1
-#!<- meta.function-call.name keyword.control.redirection.fdclose meta.string.unquoted
+#!<- meta.function-call.name keyword.other.redirection.fdclose meta.string.unquoted
 #!      ^ meta.function-call.parameter.argument.numeric constant.numeric
 
 fdblock -n 2
-#!<- keyword.control.redirection.fdblock
+#!<- keyword.other.redirection.fdblock
 #!      ^^ meta.function-call.parameter.option.short
 #!         ^ constant.numeric
 
 fdmove
-#!<- keyword.control.redirection.fdmove
+#!<- keyword.other.redirection.fdmove
   -c
 #!^^ meta.function-call.parameter.option.short
   1
@@ -640,35 +640,35 @@ fdmove
 #!^ constant.numeric
 
 fdswap
-#!<- keyword.control.redirection.fdswap
+#!<- keyword.other.redirection.fdswap
   1 2
 #!^ constant.numeric
 #!  ^ constant.numeric
 
 fdreserve 3
-#!<- keyword.control.redirection.fdreserve
+#!<- keyword.other.redirection.fdreserve
 #!        ^ constant.numeric
 
 redirfd -rwnb 1 myfile
-#!<- keyword.control.redirection.redirfd
+#!<- keyword.other.redirection.redirfd
 #!      ^^^^^ meta.function-call.parameter.option.short
 #!            ^ meta.function-call.parameter.argument.numeric
 #!              ^^^^^^ meta.function-call.parameter.argument
 
 pipeline -r { echo out }
-#!<- keyword.control.redirection.pipeline
+#!<- keyword.other.redirection.pipeline
 #!       ^^ meta.function-call.parameter.option.short
 #!          ^ punctuation.section.braces.begin
 #!            ^^^^ variable.function
 #!                     ^ punctuation.section.braces.end
 
 piperw $fdr $fdw
-#!<- keyword.control.redirection.piperw
+#!<- keyword.other.redirection.piperw
 #!     ^^^^ meta.function-call.parameter.argument variable.other
 #!          ^^^^ meta.function-call.parameter.argument variable.other
 
 heredoc 0 "I'm here, doc"
-#!<- keyword.control.redirection.heredoc
+#!<- keyword.other.redirection.heredoc
 #!      ^ meta.function-call.parameter.argument.numeric
 #!        ^^^^^^^^^^^^^^^ meta.function-call.parameter.argument
 
