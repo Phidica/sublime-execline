@@ -16,7 +16,7 @@ foreground { echo out }
 foreground # comment
 #!         ^^^^^^^^^^ comment.line
 { # comment
-#! <- punctuation.section.braces.begin
+#!<- punctuation.section.braces.begin
   echo # comment
 #!^^^^ meta.function-call.name variable.function meta.string.unquoted
 #!     ^^^^^^^^^^ comment.line
@@ -25,7 +25,7 @@ foreground # comment
 #!    ^^^^^^^^^^ comment.line
 } # comment
 # comment
-#! <- comment.line
+#!<- comment.line
 
 foreground { echo one} {two }\  \ } }
 #!                ^^^^ meta.string.unquoted
@@ -46,7 +46,7 @@ foreground { echo {} { indented } {
 #!                              ^ - punctuation
 #!                                ^ meta.braces.block.plain
 # comment
-#! <- comment.line
+#!<- comment.line
   { a }
 #!^^^^^ meta.braces.block.plain meta.braces.block.plain
 }  }
@@ -62,13 +62,13 @@ foreground {}
 #!         ^^ invalid.illegal.block
 
 # comment
-#! <- comment.line
+#!<- comment.line
 
 foreground { }
 #!         ^^^ meta.function-call.block meta.braces.block.run.program
 
 # comment
-#! <- comment.line
+#!<- comment.line
 
 foreground { echo str1 2 3str }
 #!                ^^^^ meta.string.unquoted
@@ -109,7 +109,7 @@ foreground { echo - 1 }
 
 foreground { echo =
 }
-#! <- punctuation.section.braces.end
+#!<- punctuation.section.braces.end
 
 foreground { echo --== }
 foreground { echo }
@@ -151,8 +151,8 @@ foreground { echo "one" 'two'' --opt="string" }
 
 foreground { echo "
 # notacomment" "\0x41\66\0103D\n" "\a\b\c\d\e"
-#! <- string.quoted
-#! <- - comment
+#!<- string.quoted
+#!<- - comment
 #!              ^^^^^^^^^^^^^ constant.character.escape.ascii
 #!                            ^^ constant.character.escape.ascii
 #!                                 ^^^^ constant.character.escape.ascii
@@ -369,7 +369,7 @@ foreground
   }
 #!^ punctuation.section.braces.end
 }
-#! <- punctuation.section.braces.end
+#!<- punctuation.section.braces.end
 
 foreground { runblock 1 echo > }
 #!           ^^^^^^^^ meta.function-call.name support.function.scripting.runblock meta.string.unquoted
@@ -735,3 +735,68 @@ foreground { importas -u var MY_VAR echo $var }
 #!                       ^^^ meta.function-call.parameter.argument variable.other.assignment
 #!                           ^^^^^^ meta.function-call.parameter.argument variable.other.assignment
 #!                                  ^^^^ variable.function
+
+
+foreground { elglob -v var *s*t?r${var}[!a-b][^a] }
+#!           ^^^^^^ support.function.variable.elglob
+#!                     ^^^ variable.other.assignment
+#!                         ^^^^^^^^^^^^^^^^^^ meta.function-call.parameter.argument.glob meta.string.unquoted
+#!                         ^ keyword.operator.glob.asterisk
+#!                           ^ keyword.operator.glob.asterisk
+#!                             ^ keyword.operator.glob.question-mark
+#!                               ^^^^^^ variable.other.braces
+#!                                     ^^^^^^ meta.brackets.glob.bracketexp
+#!                                     ^ keyword.operator.glob.bracketexp.begin
+#!                                      ^ keyword.operator.glob.bracketexp.invert
+#!                                        ^ keyword.operator.glob.bracketexp.range
+#!                                          ^ keyword.operator.glob.bracketexp.end
+#!                                            ^ keyword.operator.glob.bracketexp.invert
+
+# Don't break handling of these chars in variables
+foreground { echo $? ${*} $[] }
+#!                ^^ variable.other.bare
+#!                   ^^^^ variable.other.braces
+#!                        ^^^ variable.other.bare
+
+foreground { elglob -w var []a*[?] }
+#!                         ^^^^^^^ meta.string.unquoted
+#!                          ^^^^^ - keyword.operator.glob
+
+foreground { elglob -s var [!---] }
+#!                         ^^^^^^ meta.string.unquoted
+#!                           ^ - keyword.operator.glob.bracketexp.range
+#!                            ^ keyword.operator.glob.bracketexp.range
+#!                             ^ - keyword.operator.glob.bracketexp.range
+
+foreground { elglob -m var [] elglob var [!] }
+#!                         ^^ meta.string.unquoted
+#!                         ^^ - keyword.operator.glob.bracketexp
+#!                            ^^^^^^ support.function.variable.elglob
+#!                                       ^^^ meta.string.unquoted
+#!                                       ^^^ - keyword.operator.glob.bracketexp
+
+foreground { elglob -e var [[.a.]-[=á=]\ [:alpha:]] }
+#!                         ^^^^^^^^^^^^^^^^^^^^^^^^ meta.string.unquoted
+#!                          ^^^^^ constant.language.glob.collating-symbol
+#!                               ^ keyword.operator.glob.bracketexp.range
+#!                                ^^^^^ constant.language.glob.equivalence-class
+#!                                     ^^ constant.character.escape.other
+#!                                       ^^^^^^^^^ constant.language.glob.character-class
+
+foreground { elglob -0 var [][.-.]-0] }
+#!                         ^^^^^^^^^^ meta.string.unquoted
+#!                          ^ - keyword.operator.glob.bracketexp
+#!                           ^^^^^ constant.language.glob.collating-symbol
+#!                                ^ keyword.operator.glob.bracketexp.range
+
+foreground {
+  elglob var *s*t?r${var}*[][.a.]-[=á=][:alpha:]]
+#!           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string.unquoted
+#!                        ^^^^^^^^^^^^^^^^^^^^^^^ meta.brackets.glob.bracketexp
+  echo $var *s*t?r${var}[!a-b][^a]
+#!     ^^^^ variable.other.bare
+#!          ^^^^^^ - keyword.operator.glob
+#!                ^^^^^^ variable.other.braces
+#!                      ^^^^^^^^^^ - keyword.operator.glob
+}
+#!<- punctuation.section.braces.end

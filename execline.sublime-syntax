@@ -38,6 +38,11 @@ variables:
   # Parameter separators - Can break apart parameters
   param_sep: '{{ws_sep}}'
 
+  # Unquoted string interrupts
+  # Lists of chars that force a temp break in the string for higher match checking
+  str_yield_glob: \?\*\[
+  str_yield_all: '{{str_yield_glob}}'
+
   # Integer number
   int: '[+-]?[0-9]+'
 
@@ -209,6 +214,124 @@ contexts:
         - match: (?=[{{param_sep}}])
           pop: true
         - include: parameter-common
+
+  parameter-argument-glob:
+    # Argument that specifically will define a glob pattern
+
+    - match: (?=[^{{param_sep}}])
+      push:
+        - meta_scope:
+            meta.function-call.parameter.argument.glob.execline
+        - match: (?=[{{param_sep}}])
+          pop: true
+
+        # See POSIX.1-2017 globbing spec at https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13
+
+        - match: \?
+          scope:
+            keyword.operator.glob.question-mark.execline
+            meta.string.unquoted.execline
+
+        - match: \*
+          scope:
+            keyword.operator.glob.asterisk.execline
+            meta.string.unquoted.execline
+
+        - match: (\[)([!^])?(?=[^{{param_sep}}!^]+\])
+          captures:
+            # Technically only '!' is POSIX, but '^' works under GNU at least
+            # The list must contain at least one expression to be valid
+            # Don't put meta.string.unquoted on capture 0 please
+            1: keyword.operator.glob.bracketexp.begin.execline meta.string.unquoted.execline
+            2: keyword.operator.glob.bracketexp.invert.execline meta.string.unquoted.execline
+          push:
+            - parameter-argument-glob-bracketexp-continue
+            - parameter-argument-glob-bracketexp-begin
+
+        # string-unquoted breaks at {{str_yield_glob}}
+        - include: string
+
+  parameter-argument-glob-bracketexp-begin:
+    # Let parameter end
+    - match: (?={{param_sep}})
+      pop: true
+
+    # Let the expression be closed in the next context
+    - match: (?=\]{{param_sep}})
+      pop: true
+
+    # Characters treated as literal if they appear first in the list
+    # Oh, speaking of... ;)
+    - match: '[]-]'
+      scope: meta.string.unquoted.execline
+      pop: true
+
+    - match: ''
+      pop: true
+
+  parameter-argument-glob-bracketexp-continue:
+    - meta_scope: meta.brackets.glob.bracketexp.execline
+
+    # Let parameter end
+    - match: (?={{param_sep}})
+      pop: true
+
+    # Close the bracket expression
+    - match: \]
+      scope:
+        keyword.operator.glob.bracketexp.end.execline
+        meta.string.unquoted.execline
+      pop: true
+
+    - match: \[\.
+      push:
+        - meta_scope:
+            constant.language.glob.collating-symbol.execline
+            meta.string.unquoted.execline
+        - match: \.\]|(?={{param_sep}})
+          pop: true
+
+    - match: \[=
+      push:
+        - meta_scope:
+            constant.language.glob.equivalence-class.execline
+            meta.string.unquoted.execline
+        - match: =\]|(?={{param_sep}})
+          pop: true
+
+    - match: '\[:'
+      push:
+        - meta_scope:
+            constant.language.glob.character-class.execline
+            meta.string.unquoted.execline
+        - match: :\]|(?={{param_sep}})
+          pop: true
+
+    # Hyphen treated as literal at end of list
+    - match: '-(?=\])'
+      scope: meta.string.unquoted.execline
+
+    # In the case of two hyphens we can be sure the middle one is the operator
+    # POSIX.1-2017 Vol 1. Section 9.3.5, Item 7: "To use a <hyphen-minus> as the starting range point, it shall either come first in the bracket expression or be specified as a collating symbol ..."
+    - match: (-)(-)
+      captures:
+        # Don't put meta.string.unquoted on capture 0 please
+        1: keyword.operator.glob.bracketexp.range.execline meta.string.unquoted.execline
+        2: meta.string.unquoted.execline
+
+    # Otherwise, testing if the range start and end points are valid is way out of scope, so just let it through
+    - match: '-'
+      scope:
+        keyword.operator.glob.bracketexp.range.execline
+        meta.string.unquoted.execline
+
+    # Put the appropriate meta_scope on all characters, and handle unquoted escapes
+    - match: (?=[^{{param_sep}}])
+      push:
+        - meta_scope: meta.string.unquoted.execline
+        - match: (?=[{{param_sep}}\[\]-])
+          pop: true
+        - include: string-unquoted-patterns
 
   program-line:
     # A program-line is a long argv which will be exec'd into. It might be in a block, or it might be the whole script
@@ -682,6 +805,17 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
+    - match: elglob(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.elglob.execline
+        meta.string.unquoted.execline
+      push:
+        # elglob [ -v ] [ -w ] [ -s ] [ -m ] [ -e ] [ -0 ] variable pattern prog...
+        - command-call-common-glob-&pop
+        - command-call-common-variable-&pop
+        - command-call-common-opt-list-&pop
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 
@@ -734,6 +868,16 @@ contexts:
       set:
         - [
             {include: parameter-argument-variable},
+            {match: '', pop: true},
+          ]
+        - command-call-common-aside-&pop
+
+  command-call-common-glob-&pop:
+    # Pop after exactly one argument defining a glob pattern, allowing for asides first
+    - match: ''
+      set:
+        - [
+            {include: parameter-argument-glob},
             {match: '', pop: true},
           ]
         - command-call-common-aside-&pop
@@ -1018,6 +1162,10 @@ contexts:
     - match: (?=\$)
       push: variable-substitution-begin-unquoted
 
+    # Accept a string starting with any yielded characters (which we broke at to allow the including context to attempt to match)
+    - match: '[{{str_yield_all}}]'
+      scope: meta.string.unquoted.execline
+
     # Apply meta_scope and handle escapes
     - match: ''
       push: string-unquoted-continue
@@ -1034,7 +1182,7 @@ contexts:
   string-unquoted-continue:
     - meta_scope: meta.string.unquoted.execline
 
-    - match: (?=[{{param_sep}}"$])
+    - match: (?=[{{param_sep}}{{str_yield_all}}"$])
       pop: true
 
     - include: string-unquoted-patterns
@@ -1149,7 +1297,12 @@ contexts:
             {clear_scopes: 1},
             {match: '', pop: true},
           ]
-        - variable-substitution-unquoted-continue
+        - [
+            # After we've terminated at least one variable, allow yielding to occur. If there are nested braces variable subs, this will unfortunately cause an early termination of all those after the innermost one. Failing to handle that scenario is considered acceptable as it is so unlikely
+            {match: '(?=[{{str_yield_all}}])', pop: true},
+
+            {include: variable-substitution-unquoted-continue},
+          ]
 
     # Switch to quoted string
     - match: \"
