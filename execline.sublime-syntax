@@ -41,7 +41,8 @@ variables:
   # Unquoted string interrupts
   # Lists of chars that force a temp break in the string for higher match checking
   str_yield_glob: \?\*\[
-  str_yield_all: '{{str_yield_glob}}'
+  str_yield_opt_long_sep: =
+  str_yield_all: '{{str_yield_glob}}{{str_yield_opt_long_sep}}'
 
   # Integer number
   int: '[+-]?[0-9]+'

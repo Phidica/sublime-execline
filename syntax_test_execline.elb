@@ -239,10 +239,10 @@ foreground { echo $var"iable" arg $"var"iable ${var"iable}arg" }
 #!                                                        ^^^^ string.quoted
 #!                                                        ^^^^ - variable
 
-# TODO: '=' isn't matched as a separator because it doesn't have the power to escape the variable sub context
 foreground { echo --${opt}=2 ${var=iable} }
 #!                ^^^^^^^^^ meta.function-call.parameter.option.long variable.parameter
 #!                  ^^^^^^ variable.other.braces
+#!                         ^ constant.numeric
 #!                           ^^^^^^^^^^^^ variable.other.braces
 
 foreground { echo "$var" "${var}" "${$var}" "$$var" "${${var}}" }
