@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+multisubstitute { ${1:substitutions} }
+$0
+]]></content>
+	<tabTrigger>multisub</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>multisubstitute { }</description>
+</snippet>

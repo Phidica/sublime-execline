@@ -803,3 +803,51 @@ foreground {
 #!                      ^^^^^^^^^^ - keyword.operator.glob
 }
 #!<- punctuation.section.braces.end
+
+foreground { elgetpositionals -P2 echo $1 }
+#!           ^^^^^^^^^^^^^^^^ support.function.variable.elgetpositionals
+#!                            ^^ variable.parameter
+#!                                ^^^^ variable.function
+
+foreground { elgetpositionals echo $@ }
+#!                            ^^^^ variable.function
+
+foreground {
+  multidefine
+#!^^^^^^^^^^^ support.function.variable.multidefine
+  "these are the values"
+  {
+#!^ meta.braces.block.multidefine punctuation.section.braces.begin
+    list
+#!  ^^^^ meta.braces.block.multidefine variable.other.assignment
+    of my
+#!     ^^ meta.braces.block.multidefine variable.other.assignment
+    variables
+  }
+#!^ meta.braces.block.multidefine punctuation.section.braces.end
+  echo
+#!^^^^ variable.function
+  list=$list
+  of=$of
+  my=$my
+  variables=$variables
+}
+
+foreground { multidefine -0 -d , a,b { foo bar } }
+#!                       ^^ variable.parameter
+#!                          ^^ variable.parameter
+#!                                   ^^^^^^^^^^^ meta.braces.block.multidefine
+
+foreground {
+  multisubstitute {
+#!^^^^^^^^^^^^^^^ support.function.variable.multisubstitute
+#!                ^ meta.braces.block.run.program punctuation.section.braces.begin
+    define var val
+#!  ^^^^^^ support.function.variable.define
+    importas var var
+#!  ^^^^^^^^ support.function.variable.importas
+  }
+#!^ meta.braces.block.run.program punctuation.section.braces.end
+  echo $var
+#!^^^^ variable.function
+}

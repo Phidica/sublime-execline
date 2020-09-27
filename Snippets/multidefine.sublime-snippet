@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+multidefine ${1:value} { ${2:variables} }
+$0
+]]></content>
+	<tabTrigger>multidef</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>multidefine { }</description>
+</snippet>

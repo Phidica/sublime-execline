@@ -817,6 +817,42 @@ contexts:
         - command-call-common-variable-&pop
         - command-call-common-opt-list-&pop
 
+    - match: elgetpositionals(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.elgetpositionals.execline
+        meta.string.unquoted.execline
+      push:
+        # elgetpositionals [ -P sharp ] prog...
+        - [
+            {match: '(?=-P)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-aside-&pop},
+          ]
+
+    - match: multidefine(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.multidefine.execline
+        meta.string.unquoted.execline
+      push:
+        # multidefine [ -0 ] [ -r ] [ -C | -c ] [ -n ] [ -d delim ] value { variables... } prog...
+        - [ {include: block-multidefine} ]
+        - [ {include: command-call-common-arg-aside-&pop} ]
+        - [
+            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: multisubstitute(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.variable.multisubstitute.execline
+        meta.string.unquoted.execline
+      push:
+        # multisubstitute { substitutions... } prog...
+        # Right now I'm not gonna bother making a custom block type that highlights non-substitution commands as invalid.illegal, because it doesn't matter that much
+        - block-run-prog
+
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 
@@ -976,6 +1012,13 @@ contexts:
 
         - include: parameter-common
 
+  block-invalid:
+    # When we require a block, anything else showing up is a problem
+    # Just capture one whitespace-delimited word, then stop complaining
+    - match: \S+
+      scope: invalid.illegal.block.execline
+      pop: true
+
   block-run-prog:
     # A block that will somehow be evaluated ("run") and is expected to contain a properly formed program line
 
@@ -999,11 +1042,7 @@ contexts:
         # The inside of this block is indistinguishable from the base environment
         - include: main
 
-    # We're requiring a block, so anything else showing up is a problem
-    # Just capture one whitespace-delimited word, then stop complaining
-    - match: \S+
-      scope: invalid.illegal.block.execline
-      pop: true
+    - include: block-invalid
 
   block-run-arg:
     # A block that will somehow be evaluated ("run") and is expected to contain arbitrary text read as arguments
@@ -1025,11 +1064,7 @@ contexts:
         - match: ''
           push: command-call-common-arg-list-&pop
 
-    # We're requiring a block, so anything else showing up is a problem
-    # Just capture one whitespace-delimited word, then stop complaining
-    - match: \S+
-      scope: invalid.illegal.block.execline
-      pop: true
+    - include: block-invalid
 
   block-trap:
     # The block used by the "trap" builtin
@@ -1068,11 +1103,26 @@ contexts:
             - block-run-prog
             - command-call-common-aside-&pop
 
-    # We're requiring a block, so anything else showing up is a problem
-    # Just capture one whitespace-delimited word, then stop complaining
-    - match: \S+
-      scope: invalid.illegal.block.execline
-      pop: true
+    - include: block-invalid
+
+  block-multidefine:
+    # The block used by the "multidefine" builtin
+
+    - match: \{(?=[{{param_sep}}])
+      scope: punctuation.section.braces.begin.execline
+      set:
+        - meta_scope:
+            meta.function-call.block.execline
+            meta.braces.block.multidefine.execline
+        - match: \}(?=[{{param_sep}}]|$)
+          scope: punctuation.section.braces.end.execline
+          pop: true
+
+        - include: separator-whitespace
+        - include: comment
+        - include: parameter-argument-variable
+
+    - include: block-invalid
 
   block-plain:
     # A block that will get expanded by execlineb, but occurs as part of incidental parameters to a command. Used to ensure brace balancing.
