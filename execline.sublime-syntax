@@ -27,16 +27,14 @@ variables:
   # This is a list
   ws_sep: \s
 
-  # Terminate commands
-  # This is a single element
-  block_end: \}(?:[{{ws_sep}}]|$)
-
-  # TODO: Clean up
-  block_begin: \{(?:[{{ws_sep}}]|$)
-  block_punc: '[{}](?:[{{ws_sep}}]|$)'
-
   # Parameter separators - Can break apart parameters
   param_sep: '{{ws_sep}}'
+
+  # Block demarcation
+  _block_post: (?:[{{ws_sep}}]|$)
+  block_begin: \{{{_block_post}}
+  block_end: \}{{_block_post}}
+  block_punc: '[{}]{{_block_post}}'
 
   # Unquoted string interrupts
   # Lists of chars that force a temp break in the string for higher match checking
