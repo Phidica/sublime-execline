@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+wait { ${1:pids} }
+$0
+]]></content>
+	<tabTrigger>wait</tabTrigger>
+	<scope>source.shell.execline</scope>
+	<description>wait { }</description>
+</snippet>
