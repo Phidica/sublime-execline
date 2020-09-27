@@ -48,6 +48,10 @@ variables:
   # Real (floating-point) number
   real: (?:{{int}}\.?[0-9]*|[+-]?[0-9]*\.?[0-9]+)
 
+  # Wrapper for chainloading commands ("builtins" are really individual binaries, and might be given as an absolute path to the binary)
+  chain_pre: (?:/.*/)?
+  chain_post: (?=[{{param_sep}}])
+
 contexts:
   main:
     # Pick up comments before the command line starts
@@ -361,7 +365,7 @@ contexts:
   command-call-chainload-state:
     # Process state control
 
-    - match: foreground(?=[{{param_sep}}])
+    - match: '{{chain_pre}}foreground{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.state.foreground.execline
@@ -370,7 +374,7 @@ contexts:
         # foreground { prog1... } prog2...
         - block-run-prog
 
-    - match: background(?=[{{param_sep}}])
+    - match: '{{chain_pre}}background{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.state.background.execline
@@ -380,7 +384,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: exec(?=[{{param_sep}}])
+    - match: '{{chain_pre}}exec{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.exec.execline
@@ -392,7 +396,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: execline-cd(?=[{{param_sep}}])
+    - match: '{{chain_pre}}execline-cd{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.execline-cd.execline
@@ -401,7 +405,7 @@ contexts:
         # execline-cd dir prog...
         - command-call-common-arg-aside-&pop
 
-    - match: posix-cd(?=[{{param_sep}}])
+    - match: '{{chain_pre}}posix-cd{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.posix-cd.execline
@@ -411,7 +415,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: cd(?=[{{param_sep}}])
+    - match: '{{chain_pre}}cd{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.cd.execline
@@ -421,7 +425,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: execline-umask(?=[{{param_sep}}])
+    - match: '{{chain_pre}}execline-umask{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.execline-umask.execline
@@ -430,7 +434,7 @@ contexts:
         # execline-umask mask prog...
         - command-call-common-arg-aside-&pop
 
-    - match: posix-umask(?=[{{param_sep}}])
+    - match: '{{chain_pre}}posix-umask{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.posix-umask.execline
@@ -441,7 +445,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: umask(?=[{{param_sep}}])
+    - match: '{{chain_pre}}umask{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.umask.execline
@@ -451,7 +455,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: wait(?=[{{param_sep}}])
+    - match: '{{chain_pre}}wait{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.wait.execline
@@ -470,7 +474,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: trap(?=[{{param_sep}}])
+    - match: '{{chain_pre}}trap{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.state.trap.execline
@@ -486,7 +490,7 @@ contexts:
   command-call-chainload-conditional:
     # Conditional execution
 
-    - match: if(?=[{{param_sep}}])
+    - match: '{{chain_pre}}if{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.conditional.if.execline
@@ -496,7 +500,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: ifelse(?=[{{param_sep}}])
+    - match: '{{chain_pre}}ifelse{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.conditional.ifelse.execline
@@ -507,7 +511,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: ifte(?=[{{param_sep}}])
+    - match: '{{chain_pre}}ifte{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.conditional.ifte.execline
@@ -518,7 +522,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: ifthenelse(?=[{{param_sep}}])
+    - match: '{{chain_pre}}ifthenelse{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.conditional.ifthenelse.execline
@@ -530,7 +534,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: tryexec(?=[{{param_sep}}])
+    - match: '{{chain_pre}}tryexec{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.conditional.tryexec.execline
@@ -543,7 +547,7 @@ contexts:
   command-call-chainload-loop:
     # Looped execution
 
-    - match: forx(?=[{{param_sep}}])
+    - match: '{{chain_pre}}forx{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.loop.forx.execline
@@ -557,7 +561,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: forstdin(?=[{{param_sep}}])
+    - match: '{{chain_pre}}forstdin{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.loop.forstdin.execline
@@ -570,7 +574,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: forbacktickx(?=[{{param_sep}}])
+    - match: '{{chain_pre}}forbacktickx{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.loop.forbacktickx.execline
@@ -584,7 +588,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: loopwhilex(?=[{{param_sep}}])
+    - match: '{{chain_pre}}loopwhilex{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.control.loop.loopwhilex.execline
@@ -599,7 +603,7 @@ contexts:
   command-call-chainload-redirection:
     # Redirection of file descriptors, and related FD controls
 
-    - match: fdclose(?=[{{param_sep}}])
+    - match: '{{chain_pre}}fdclose{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.fdclose.execline
@@ -608,7 +612,7 @@ contexts:
         # fdclose fd prog...
         - command-call-common-arg-aside-&pop
 
-    - match: fdblock(?=[{{param_sep}}])
+    - match: '{{chain_pre}}fdblock{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.fdblock.execline
@@ -618,7 +622,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: fdmove(?=[{{param_sep}}])
+    - match: '{{chain_pre}}fdmove{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.fdmove.execline
@@ -629,7 +633,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: fdswap(?=[{{param_sep}}])
+    - match: '{{chain_pre}}fdswap{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.fdswap.execline
@@ -639,7 +643,7 @@ contexts:
         - command-call-common-arg-aside-&pop
         - command-call-common-arg-aside-&pop
 
-    - match: fdreserve(?=[{{param_sep}}])
+    - match: '{{chain_pre}}fdreserve{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.fdreserve.execline
@@ -648,7 +652,7 @@ contexts:
         # fdreserve n prog...
         - command-call-common-arg-aside-&pop
 
-    - match: redirfd(?=[{{param_sep}}])
+    - match: '{{chain_pre}}redirfd{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.redirfd.execline
@@ -659,7 +663,7 @@ contexts:
         - command-call-common-arg-now-&pop
         - command-call-common-opt-list-&pop
 
-    - match: pipeline(?=[{{param_sep}}])
+    - match: '{{chain_pre}}pipeline{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.pipeline.execline
@@ -669,7 +673,7 @@ contexts:
         - block-run-prog
         - command-call-common-opt-arg-weak-list-&pop
 
-    - match: piperw(?=[{{param_sep}}])
+    - match: '{{chain_pre}}piperw{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.piperw.execline
@@ -679,7 +683,7 @@ contexts:
         - command-call-common-arg-aside-&pop
         - command-call-common-arg-aside-&pop
 
-    - match: heredoc(?=[{{param_sep}}])
+    - match: '{{chain_pre}}heredoc{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.redirection.heredoc.execline
@@ -694,7 +698,7 @@ contexts:
     # Environment variables and variable substitutions
     # Generally, treat environment variable assignment as being more fundamental and "keyword-worthy" than variable substitution...but it is a very arbitrary distinction
 
-    - match: emptyenv(?=[{{param_sep}}])
+    - match: '{{chain_pre}}emptyenv{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.emptyenv.execline
@@ -703,7 +707,7 @@ contexts:
         # emptyenv [ -p | -c | -o | -P ] prog...
         - command-call-common-opt-list-&pop
 
-    - match: envfile(?=[{{param_sep}}])
+    - match: '{{chain_pre}}envfile{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.envfile.execline
@@ -712,7 +716,7 @@ contexts:
         # envfile file prog...
         - command-call-common-arg-aside-&pop
 
-    - match: export(?=[{{param_sep}}])
+    - match: '{{chain_pre}}export{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.export.execline
@@ -722,7 +726,7 @@ contexts:
         - command-call-common-arg-aside-&pop
         - command-call-common-variable-&pop
 
-    - match: unexport(?=[{{param_sep}}])
+    - match: '{{chain_pre}}unexport{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.unexport.execline
@@ -731,7 +735,7 @@ contexts:
         # unexport var prog...
         - command-call-common-variable-&pop
 
-    - match: getcwd(?=[{{param_sep}}])
+    - match: '{{chain_pre}}getcwd{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.getcwd.execline
@@ -740,7 +744,7 @@ contexts:
         # getcwd var prog...
         - command-call-common-variable-&pop
 
-    - match: getpid(?=[{{param_sep}}])
+    - match: '{{chain_pre}}getpid{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.getpid.execline
@@ -749,7 +753,7 @@ contexts:
         # getpid var prog...
         - command-call-common-variable-&pop
 
-    - match: withstdinas(?=[{{param_sep}}])
+    - match: '{{chain_pre}}withstdinas{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.withstdinas.execline
@@ -762,7 +766,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: backtick(?=[{{param_sep}}])
+    - match: '{{chain_pre}}backtick{{chain_post}}'
       scope:
         meta.function-call.name.execline
         keyword.other.variable.backtick.execline
@@ -776,7 +780,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: define(?=[{{param_sep}}])
+    - match: '{{chain_pre}}define{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.define.execline
@@ -790,7 +794,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: importas(?=[{{param_sep}}])
+    - match: '{{chain_pre}}importas{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.importas.execline
@@ -804,7 +808,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: elglob(?=[{{param_sep}}])
+    - match: '{{chain_pre}}elglob{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.elglob.execline
@@ -815,7 +819,7 @@ contexts:
         - command-call-common-variable-&pop
         - command-call-common-opt-list-&pop
 
-    - match: elgetpositionals(?=[{{param_sep}}])
+    - match: '{{chain_pre}}elgetpositionals{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.elgetpositionals.execline
@@ -827,7 +831,7 @@ contexts:
             {include: command-call-common-opt-list-&pop}, # for end-of-options
           ]
 
-    - match: multidefine(?=[{{param_sep}}])
+    - match: '{{chain_pre}}multidefine{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.multidefine.execline
@@ -841,7 +845,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: multisubstitute(?=[{{param_sep}}])
+    - match: '{{chain_pre}}multisubstitute{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.variable.multisubstitute.execline
@@ -854,7 +858,7 @@ contexts:
   command-call-chainload-scripting:
     # Scripting tools (options, positional parameters, blocks)
 
-    - match: runblock(?=[{{param_sep}}])
+    - match: '{{chain_pre}}runblock{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.scripting.runblock.execline
@@ -867,7 +871,7 @@ contexts:
             {include: command-call-common-opt-list-&pop},
           ]
 
-    - match: elgetopt(?=[{{param_sep}}])
+    - match: '{{chain_pre}}elgetopt{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.scripting.elgetopt.execline
@@ -876,7 +880,7 @@ contexts:
         # elgetopt optstring prog...
         - command-call-common-arg-aside-&pop
 
-    - match: shift(?=[{{param_sep}}])
+    - match: '{{chain_pre}}shift{{chain_post}}'
       scope:
         meta.function-call.name.execline
         support.function.scripting.shift.execline

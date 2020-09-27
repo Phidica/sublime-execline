@@ -2,10 +2,10 @@
 
 foreground { echo out }
 #! ^^^^^^^^^^^^^^^^^^^^^ meta.function-call
-#!          ^^^^^^^^^^ meta.function-call meta.function-call
 #! ^^^^^^^ meta.function-call.name keyword.other.state.foreground meta.string.unquoted
 #!         ^^^^^^^^^^^^ meta.braces.block.run.program
 #!         ^ punctuation.section.braces.begin
+#!          ^^^^^^^^^^ meta.function-call meta.function-call
 #!           ^^^^ meta.function-call.name variable.function meta.string.unquoted
 #!                ^^^ meta.function-call.parameter.argument meta.string.unquoted
 #!                    ^ punctuation.section.braces.end
@@ -13,8 +13,9 @@ foreground { echo out }
 # comment
 #!<- comment.line
 
-foreground # comment
-#!         ^^^^^^^^^^ comment.line
+/bin/foreground # comment
+#!^^^^^^^^^^^^^ keyword.other.state.foreground
+#!              ^^^^^^^^^^ comment.line
 { # comment
 #!<- punctuation.section.braces.begin
   echo # comment
@@ -376,12 +377,13 @@ foreground { runblock 1 echo > }
 #!                    ^ meta.function-call.parameter.argument
 #!                      ^^^^ meta.function-call.name variable.function meta.string.unquoted
 
-foreground { runblock -d -n 3 1 echo > }
-#!                    ^^ meta.function-call.parameter.option.short
-#!                       ^^ meta.function-call.parameter.option.short
-#!                          ^ meta.function-call.parameter.argument
-#!                            ^ meta.function-call.parameter.argument
-#!                              ^^^^ variable.function
+foreground { /bin/runblock -d -n 3 1 echo > }
+#!           ^^^^^^^^^^^^^ support.function.scripting.runblock
+#!                         ^^ meta.function-call.parameter.option.short
+#!                            ^^ meta.function-call.parameter.option.short
+#!                               ^ meta.function-call.parameter.argument
+#!                                 ^ meta.function-call.parameter.argument
+#!                                   ^^^^ variable.function
 
 foreground { runblock -d 1 echo > }
 #!                    ^^ meta.function-call.parameter.option.short
