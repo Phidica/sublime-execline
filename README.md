@@ -8,10 +8,10 @@ This project is under active development and is not yet feature-complete.
 Planned features
 ----------------
 
-- Complete syntax coverage of the execline builtins.
-- Snippets (keywords).
-- Distribution via Package Control.
-- (If possible) Custom specification of signatures for user-defined functions.
+- [x] Complete syntax coverage of the execline builtins.
+- [x] Snippets (~~keywords~~).
+- [ ] \(If possible) Custom specification of signatures for user-defined functions.
+- [ ] Distribution via Package Control.
 
 File extension
 --------------
