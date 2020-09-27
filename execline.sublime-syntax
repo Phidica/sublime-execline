@@ -1240,7 +1240,7 @@ contexts:
     - match: (?=\$)
       set: variable-substitution-begin-quoted
 
-    # Put the appropriate meta_scope on all characters, and handle quoted escapes
+    # Put the appropriate scope on all characters and handle quoted escapes
     - match: ''
       push:
         - meta_scope: string.quoted.execline
@@ -1257,11 +1257,15 @@ contexts:
     - match: (?=\$)
       set: variable-substitution-begin-unquoted
 
-    # Put the appropriate meta_scope on all characters, and handle unquoted escapes
+    # Put the appropriate scope on all characters and handle unquoted escapes
+
+    - match: '[{{str_yield_all}}]'
+      scope: meta.string.unquoted.execline
+
     - match: (?=[^{{param_sep}}])
       push:
         - meta_scope: meta.string.unquoted.execline
-        - match: (?=[{{param_sep}}{}"$])
+        - match: (?=[{{param_sep}}{{str_yield_all}}{}"$])
           pop: true
         - include: string-unquoted-patterns
 

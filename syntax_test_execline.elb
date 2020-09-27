@@ -758,6 +758,9 @@ foreground { echo $? ${*} $[] }
 #!                   ^^^^ variable.other.braces
 #!                        ^^^ variable.other.bare
 
+foreground { elglob -- var ${var}.* }
+#!                                ^ keyword.operator.glob.asterisk
+
 foreground { elglob -w var []a*[?] }
 #!                         ^^^^^^^ meta.string.unquoted
 #!                          ^^^^^ - keyword.operator.glob
