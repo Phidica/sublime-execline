@@ -24,11 +24,8 @@ scope: source.shell.execline
 # Use [A-Za-z0-9_]+ for these internal variable names
 variables:
   # Separator whitespace - Delimits command names, parameters, etc
-  # This is a list
+  # This is an element of a list
   ws_sep: \s
-
-  # Parameter separators - Can break apart parameters
-  param_sep: '{{ws_sep}}'
 
   # Block demarcation
   _block_post: (?:[{{ws_sep}}]|$)
@@ -50,7 +47,7 @@ variables:
 
   # Wrapper for chainloading commands ("builtins" are really individual binaries, and might be given as an absolute path to the binary)
   chain_pre: (?:/.*/)?
-  chain_post: (?=[{{param_sep}}])
+  chain_post: (?=[{{ws_sep}}])
 
 contexts:
   main:
@@ -61,7 +58,7 @@ contexts:
     - match: \}
       push:
         - meta_scope: invalid.illegal.function-call.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
 
     # Base command line: goes up until a close brace
@@ -102,7 +99,7 @@ contexts:
     - match: (?=--)
       push:
         - meta_scope: meta.function-call.parameter.option.long.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
 
         - match: --
@@ -111,7 +108,7 @@ contexts:
             meta.string.unquoted.execline
           push:
             - meta_scope: variable.parameter.execline
-            - match: (?=[{{param_sep}}=])
+            - match: (?=[{{ws_sep}}=])
               pop: true
 
             # We would use the parameter-common context, but we need to exclude '=' from unquoted strings
@@ -125,7 +122,7 @@ contexts:
             - match: ''
               push:
                 - meta_scope: meta.string.unquoted.execline
-                - match: (?=[{{param_sep}}{"$=])
+                - match: (?=[{{ws_sep}}{"$=])
                   pop: true
                 - include: string-unquoted-patterns
 
@@ -136,10 +133,10 @@ contexts:
             punctuation.definition.option.long.separator.execline
             meta.string.unquoted.execline
           push:
-            - match: (?=[{{param_sep}}])
+            - match: (?=[{{ws_sep}}])
               pop: true
 
-            - match: '{{real}}(?=$|[{{param_sep}}])'
+            - match: '{{real}}(?=$|[{{ws_sep}}])'
               scope:
                 meta.string.unquoted.execline
                 constant.numeric.execline
@@ -149,7 +146,7 @@ contexts:
   parameter-option-short-group:
     # Short option (parameter starting with one hyphen)
     # In this form, characters after the first are treated as grouped options
-    - match: -(?=[^{{param_sep}}])
+    - match: -(?=[^{{ws_sep}}])
       scope:
         punctuation.definition.option.short.execline
         meta.string.unquoted.execline
@@ -157,14 +154,14 @@ contexts:
         - meta_scope:
             meta.function-call.parameter.option.short.execline
             variable.parameter.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
         - include: parameter-common
 
   parameter-option-short-single:
     # Short option (parameter starting with one hyphen)
     # In this form, characters after the first are not consumed so that they may be captured elsewhere as the argument
-    - match: -(?=[^{{param_sep}}])
+    - match: -(?=[^{{ws_sep}}])
       scope:
         punctuation.definition.option.short.execline
         meta.string.unquoted.execline
@@ -184,15 +181,15 @@ contexts:
     # Arguments are a type of parameter never treated like options by the command they are passed to
     # This context must be entirely standalone because it is used in scopes where parameters starting with hyphens are explicitly interpreted as arguments rather than as options
 
-    - match: (?=[^{{param_sep}}])
+    - match: (?=[^{{ws_sep}}])
       # Begin if we do not precede whitespace or an operator
       push:
         # End if we precede whitespace or operators
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
 
         # Treat a sequence of integers (with possible sign and decimal separator) as a standalone constant. Don't do this in the string-unquoted-patterns context, so that we can ensure it is a string solely of numbers
-        - match: '{{real}}(?=$|[{{param_sep}}])'
+        - match: '{{real}}(?=$|[{{ws_sep}}])'
           scope:
             meta.function-call.parameter.argument.numeric.execline
             meta.string.unquoted.execline
@@ -202,30 +199,30 @@ contexts:
         - match: (?!\s)
           push:
             - meta_scope: meta.function-call.parameter.argument.execline
-            - match: (?=[{{param_sep}}])
+            - match: (?=[{{ws_sep}}])
               pop: true
             - include: parameter-common
 
   parameter-argument-variable:
     # Argument that specifically will define a variable name
 
-    - match: (?=[^{{param_sep}}])
+    - match: (?=[^{{ws_sep}}])
       push:
         - meta_scope:
             meta.function-call.parameter.argument.execline
             variable.other.assignment.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
         - include: parameter-common
 
   parameter-argument-glob:
     # Argument that specifically will define a glob pattern
 
-    - match: (?=[^{{param_sep}}])
+    - match: (?=[^{{ws_sep}}])
       push:
         - meta_scope:
             meta.function-call.parameter.argument.glob.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
 
         # See POSIX.1-2017 globbing spec at https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13
@@ -240,7 +237,7 @@ contexts:
             keyword.operator.glob.asterisk.execline
             meta.string.unquoted.execline
 
-        - match: (\[)([!^])?(?=[^{{param_sep}}!^]+\])
+        - match: (\[)([!^])?(?=[^{{ws_sep}}!^]+\])
           captures:
             # Technically only '!' is POSIX, but '^' works under GNU at least
             # The list must contain at least one expression to be valid
@@ -256,11 +253,11 @@ contexts:
 
   parameter-argument-glob-bracketexp-begin:
     # Let parameter end
-    - match: (?={{param_sep}})
+    - match: (?={{ws_sep}})
       pop: true
 
     # Let the expression be closed in the next context
-    - match: (?=\]{{param_sep}})
+    - match: (?=\]{{ws_sep}})
       pop: true
 
     # Characters treated as literal if they appear first in the list
@@ -276,7 +273,7 @@ contexts:
     - meta_scope: meta.brackets.glob.bracketexp.execline
 
     # Let parameter end
-    - match: (?={{param_sep}})
+    - match: (?={{ws_sep}})
       pop: true
 
     # Close the bracket expression
@@ -291,7 +288,7 @@ contexts:
         - meta_scope:
             constant.language.glob.collating-symbol.execline
             meta.string.unquoted.execline
-        - match: \.\]|(?={{param_sep}})
+        - match: \.\]|(?={{ws_sep}})
           pop: true
 
     - match: \[=
@@ -299,7 +296,7 @@ contexts:
         - meta_scope:
             constant.language.glob.equivalence-class.execline
             meta.string.unquoted.execline
-        - match: =\]|(?={{param_sep}})
+        - match: =\]|(?={{ws_sep}})
           pop: true
 
     - match: '\[:'
@@ -307,7 +304,7 @@ contexts:
         - meta_scope:
             constant.language.glob.character-class.execline
             meta.string.unquoted.execline
-        - match: :\]|(?={{param_sep}})
+        - match: :\]|(?={{ws_sep}})
           pop: true
 
     # Hyphen treated as literal at end of list
@@ -329,10 +326,10 @@ contexts:
         meta.string.unquoted.execline
 
     # Put the appropriate meta_scope on all characters, and handle unquoted escapes
-    - match: (?=[^{{param_sep}}])
+    - match: (?=[^{{ws_sep}}])
       push:
         - meta_scope: meta.string.unquoted.execline
-        - match: (?=[{{param_sep}}\[\]-])
+        - match: (?=[{{ws_sep}}\[\]-])
           pop: true
         - include: string-unquoted-patterns
 
@@ -901,7 +898,7 @@ contexts:
 
   command-call-common-end-of-options-&pop:
     # End of options (parameter of just two hyphens)
-    - match: --(?=[{{param_sep}}])
+    - match: --(?=[{{ws_sep}}])
       scope:
         meta.function-call.parameter.option.end.execline
         variable.parameter.execline
@@ -944,7 +941,7 @@ contexts:
 
   command-call-common-opt-arg-&pop:
     # A short option followed by an argument. Pop after one pair
-    - match: (?=-[^{{param_sep}}])
+    - match: (?=-[^{{ws_sep}}])
       push:
         - [
             # If we see whitespace, allow comments before the arg
@@ -979,7 +976,7 @@ contexts:
 
   command-call-common-opt-arg-weak-list-&pop:
     # A series of short options where each might be followed by an argument. Pop at an extra argument or block punctuation
-    - match: (?=-[^{{param_sep}}])
+    - match: (?=-[^{{ws_sep}}])
       push:
         - [
             # End at block punctuation or after one argument
@@ -1019,7 +1016,7 @@ contexts:
           ]
         - [
             # A name element
-            {match: '(?=[{{param_sep}}])', pop: true},
+            {match: '(?=[{{ws_sep}}])', pop: true},
             {include: command-call-standard-name},
           ]
 
@@ -1030,7 +1027,7 @@ contexts:
         - meta_scope:
             meta.function-call.name.execline
             variable.function.execline
-        - match: (?=[{{param_sep}}])
+        - match: (?=[{{ws_sep}}])
           pop: true
 
         - include: parameter-common
@@ -1049,13 +1046,13 @@ contexts:
     - include: separator-whitespace
     - include: comment
 
-    - match: \{(?=[{{param_sep}}])
+    - match: \{(?=[{{ws_sep}}])
       scope: punctuation.section.braces.begin.execline
       set:
         - meta_scope:
             meta.function-call.block.execline
             meta.braces.block.run.program.execline
-        - match: \}(?=[{{param_sep}}]|$)
+        - match: \}(?=[{{ws_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
 
@@ -1074,13 +1071,13 @@ contexts:
     - include: separator-whitespace
     - include: comment
 
-    - match: \{(?=[{{param_sep}}])
+    - match: \{(?=[{{ws_sep}}])
       scope: punctuation.section.braces.begin.execline
       set:
         - meta_scope:
             meta.function-call.block.execline
             meta.braces.block.run.arguments.execline
-        - match: \}(?=[{{param_sep}}]|$)
+        - match: \}(?=[{{ws_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
 
@@ -1092,13 +1089,13 @@ contexts:
   block-trap:
     # The block used by the "trap" builtin
 
-    - match: \{(?=[{{param_sep}}])
+    - match: \{(?=[{{ws_sep}}])
       scope: punctuation.section.braces.begin.execline
       set:
         - meta_scope:
             meta.function-call.block.execline
             meta.braces.block.trap.execline
-        - match: \}(?=[{{param_sep}}]|$)
+        - match: \}(?=[{{ws_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
 
@@ -1131,13 +1128,13 @@ contexts:
   block-multidefine:
     # The block used by the "multidefine" builtin
 
-    - match: \{(?=[{{param_sep}}])
+    - match: \{(?=[{{ws_sep}}])
       scope: punctuation.section.braces.begin.execline
       set:
         - meta_scope:
             meta.function-call.block.execline
             meta.braces.block.multidefine.execline
-        - match: \}(?=[{{param_sep}}]|$)
+        - match: \}(?=[{{ws_sep}}]|$)
           scope: punctuation.section.braces.end.execline
           pop: true
 
@@ -1151,13 +1148,13 @@ contexts:
     # A block that will get expanded by execlineb, but occurs as part of incidental parameters to a command. Used to ensure brace balancing.
     # The parameters may well look like options, but because execlineb will prepend them with an extra space they won't be seen as options by the command. Mark them up as plain arguments.
     # This is also important for builtins that use block-run-arg, because certainly nothing that looks like an option in those is ever going to be interpreted as one by the relevant builtin
-    - match: \{(?=[{{param_sep}}])
+    - match: \{(?=[{{ws_sep}}])
       scope:
         meta.function-call.parameter.argument.execline
         meta.string.unquoted.execline
       push:
         - meta_scope: meta.braces.block.plain.execline
-        - match: \}(?=[{{param_sep}}])
+        - match: \}(?=[{{ws_sep}}])
           scope:
             meta.function-call.parameter.argument.execline
             meta.string.unquoted.execline
@@ -1256,7 +1253,7 @@ contexts:
   string-unquoted-continue:
     - meta_scope: meta.string.unquoted.execline
 
-    - match: (?=[{{param_sep}}{{str_yield_all}}"$])
+    - match: (?=[{{ws_sep}}{{str_yield_all}}"$])
       pop: true
 
     - include: string-unquoted-patterns
@@ -1323,7 +1320,7 @@ contexts:
 
   variable-substitution-unquoted-common:
     # Unquoted whitespace ends parameter, terminates variable substitution
-    - match: (?=[{{param_sep}}])
+    - match: (?=[{{ws_sep}}])
       pop: true
 
     # Start a new variable if we encounter one
@@ -1335,10 +1332,10 @@ contexts:
     - match: '[{{str_yield_all}}]'
       scope: meta.string.unquoted.execline
 
-    - match: (?=[^{{param_sep}}])
+    - match: (?=[^{{ws_sep}}])
       push:
         - meta_scope: meta.string.unquoted.execline
-        - match: (?=[{{param_sep}}{{str_yield_all}}{}"$])
+        - match: (?=[{{ws_sep}}{{str_yield_all}}{}"$])
           pop: true
         - include: string-unquoted-patterns
 
