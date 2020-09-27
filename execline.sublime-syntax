@@ -826,7 +826,7 @@ contexts:
         # elgetpositionals [ -P sharp ] prog...
         - [
             {match: '(?=-P)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-aside-&pop},
+            {include: command-call-common-opt-list-&pop}, # for end-of-options
           ]
 
     - match: multidefine(?=[{{param_sep}}])
@@ -867,6 +867,27 @@ contexts:
         - [
             {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
             {include: command-call-common-opt-list-&pop},
+          ]
+
+    - match: elgetopt(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.scripting.elgetopt.execline
+        meta.string.unquoted.execline
+      push:
+        # elgetopt optstring prog...
+        - command-call-common-arg-aside-&pop
+
+    - match: shift(?=[{{param_sep}}])
+      scope:
+        meta.function-call.name.execline
+        support.function.scripting.shift.execline
+        meta.string.unquoted.execline
+      push:
+        # shift [ -n argn ] [ -b blockn ] prog...
+        - [
+            {match: '(?=-[nb])', push: command-call-common-opt-arg-&pop},
+            {include: command-call-common-opt-list-&pop}, # for end-of-options
           ]
 
   command-call-common-aside-&pop:

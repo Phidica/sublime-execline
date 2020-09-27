@@ -804,10 +804,11 @@ foreground {
 }
 #!<- punctuation.section.braces.end
 
-foreground { elgetpositionals -P2 echo $1 }
+foreground { elgetpositionals -P2 -- echo $1 }
 #!           ^^^^^^^^^^^^^^^^ support.function.variable.elgetpositionals
 #!                            ^^ variable.parameter
-#!                                ^^^^ variable.function
+#!                                ^^ punctuation.definition.option.end
+#!                                   ^^^^ variable.function
 
 foreground { elgetpositionals echo $@ }
 #!                            ^^^^ variable.function
@@ -851,3 +852,14 @@ foreground {
   echo $var
 #!^^^^ variable.function
 }
+
+foreground { elgetopt :c:h importas -u ELGETOPT_c ELGETOPT_c echo $ELGETOPT_c }
+#!           ^^^^^^^^ support.function.scripting.elgetopt
+#!                         ^^^^^^^^ support.function.variable.importas
+
+foreground { shift -n 1 -b 0 -- -prog }
+#!           ^^^^^ support.function.scripting.shift
+#!                 ^^ variable.parameter
+#!                      ^^ variable.parameter
+#!                           ^^ punctuation.definition.option.end
+#!                              ^^^^^ variable.function
