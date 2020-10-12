@@ -339,13 +339,12 @@ contexts:
     # Start on a non-whitespace character
     - match: (?=\S)
       push:
-        - [
-            {match: '(?={{block_end}})', pop: true},
-            {include: separator-whitespace},
-            {include: comment},
-            {include: command-call-chainload},
-            {include: command-call-standard},
-          ]
+        - match: (?={{block_end}})
+          pop: true
+        - include: separator-whitespace
+        - include: comment
+        - include: command-call-chainload
+        - include: command-call-standard
 
   command-call-chainload:
     # The "builtin" execline commands that are capable of chainloading further commands.
@@ -388,10 +387,9 @@ contexts:
         meta.string.unquoted.execline
       push:
         # exec [ -c ] [ -l ] [ -a argv0 ] prog...
-        - [
-            {match: '(?=-a)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - match: (?=-a)
+          push: command-call-common-opt-arg-&pop
+        - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}execline-cd{{chain_post}}'
       scope:
@@ -460,16 +458,17 @@ contexts:
       push:
         # wait [ -I | -i ] [ -r | -t timeout ] { [ pids... ] } prog...
         # wait [ -I | -i ] [ -r | -t timeout ] [ pids... ] # Then exit (POSIX)
-        - [
-            # If we see a block, we have the form that chainloads
-            {match: '(?={{block_begin}})', set: block-run-arg},
-            # Else we have a list of PIDs (read arbitrary number of arguments) and no chainload
-            {match: '', set: command-call-common-arg-list-&pop},
-          ]
-        - [
-            {match: '(?=-t)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        -
+          # If we see a block, we have the form that chainloads
+          - match: (?={{block_begin}})
+            set: block-run-arg
+          # Else we have a list of PIDs (read arbitrary number of arguments) and no chainload
+          - match: ''
+            set: command-call-common-arg-list-&pop
+        -
+          - match: (?=-t)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}trap{{chain_post}}'
       scope:
@@ -478,11 +477,11 @@ contexts:
         meta.string.unquoted.execline
       push:
         # trap [ -x ] [ -t millisecs ] { sigcodes and actions } prog...
-        - [ {include: block-trap} ]
-        - [
-            {match: '(?=-t)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: block-trap
+        -
+          - match: (?=-t)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
   command-call-chainload-conditional:
     # Conditional execution
@@ -551,12 +550,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # forx [ -p ] [ -o okcodes | -x breakcodes ] variable { args... } loop...
-        - [ {include: block-run-arg} ]
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: block-run-arg
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-[ox])
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}forstdin{{chain_post}}'
       scope:
@@ -565,11 +564,11 @@ contexts:
         meta.string.unquoted.execline
       push:
         # forstdin [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable loop...
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-[oxd])
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}forbacktickx{{chain_post}}'
       scope:
@@ -578,12 +577,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # forbacktickx [ -p | -o okcodes | -x breakcodes ] [ -n ] [ -C | -c ] [ -0 | -d delim ] variable { gen... } loop...
-        - [ {include: block-run-prog} ]
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-[oxd])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: block-run-prog
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-[oxd])
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}loopwhilex{{chain_post}}'
       scope:
@@ -592,10 +591,9 @@ contexts:
         meta.string.unquoted.execline
       push:
         # loopwhilex [ -n ] [ -o okcodes | -x breakcodes ] prog...
-        - [
-            {match: '(?=-[ox])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - match: '(?=-[ox])'
+          push: command-call-common-opt-arg-&pop
+        - include: command-call-common-opt-list-&pop
 
   command-call-chainload-redirection:
     # Redirection of file descriptors, and related FD controls
@@ -757,11 +755,11 @@ contexts:
         meta.string.unquoted.execline
       push:
         # withstdinas [ -i | -I | -D default ] [ -n ] variable prog...
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-D)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-D)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}backtick{{chain_post}}'
       scope:
@@ -770,12 +768,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # backtick [ -i | -I | -D default ] [ -n ] variable { prog1... } prog2...
-        - [ {include: block-run-prog} ]
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-D)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: block-run-prog
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-D)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}define{{chain_post}}'
       scope:
@@ -784,12 +782,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # define [ -s ] [ -C | -c ] [ -n ] [ -d delim ] variable value prog...
-        - [ {include: command-call-common-arg-aside-&pop} ]
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: command-call-common-arg-aside-&pop
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-d)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}importas{{chain_post}}'
       scope:
@@ -798,12 +796,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # importas [ -i | -D default ] [ -u ] [ -s ] [ -C | -c ] [ -n ] [ -d delim ] variable envvar prog...
-        - [ {include: command-call-common-variable-&pop} ]
-        - [ {include: command-call-common-variable-&pop} ]
-        - [
-            {match: '(?=-[Dd])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: command-call-common-variable-&pop
+        - - include: command-call-common-variable-&pop
+        -
+          - match: (?=-[Dd])
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}elglob{{chain_post}}'
       scope:
@@ -823,10 +821,9 @@ contexts:
         meta.string.unquoted.execline
       push:
         # elgetpositionals [ -P sharp ] prog...
-        - [
-            {match: '(?=-P)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop}, # for end-of-options
-          ]
+        - match: (?=-P)
+          push: command-call-common-opt-arg-&pop
+        - include: command-call-common-opt-list-&pop # for end-of-options
 
     - match: '{{chain_pre}}multidefine{{chain_post}}'
       scope:
@@ -835,12 +832,12 @@ contexts:
         meta.string.unquoted.execline
       push:
         # multidefine [ -0 ] [ -r ] [ -C | -c ] [ -n ] [ -d delim ] value { variables... } prog...
-        - [ {include: block-multidefine} ]
-        - [ {include: command-call-common-arg-aside-&pop} ]
-        - [
-            {match: '(?=-d)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: block-multidefine
+        - - include: command-call-common-arg-aside-&pop
+        -
+          - match: (?=-d)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}multisubstitute{{chain_post}}'
       scope:
@@ -862,11 +859,11 @@ contexts:
         meta.string.unquoted.execline
       push:
         # runblock [ -P ] [ -n argshift ] [ -r ] n cmd...
-        - [ {include: command-call-common-arg-now-&pop} ]
-        - [
-            {match: '(?=-n)', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop},
-          ]
+        - - include: command-call-common-arg-now-&pop
+        -
+          - match: (?=-n)
+            push: command-call-common-opt-arg-&pop
+          - include: command-call-common-opt-list-&pop
 
     - match: '{{chain_pre}}elgetopt{{chain_post}}'
       scope:
@@ -884,10 +881,9 @@ contexts:
         meta.string.unquoted.execline
       push:
         # shift [ -n argn ] [ -b blockn ] prog...
-        - [
-            {match: '(?=-[nb])', push: command-call-common-opt-arg-&pop},
-            {include: command-call-common-opt-list-&pop}, # for end-of-options
-          ]
+        - match: (?=-[nb])
+          push: command-call-common-opt-arg-&pop
+        - include: command-call-common-opt-list-&pop # for end-of-options
 
   command-call-common-aside-&pop:
     # Allow some "asides" (whitespace, comments), then pop
@@ -923,37 +919,38 @@ contexts:
     # Pop after exactly one argument defining a variable, allowing for asides first
     - match: ''
       set:
-        - [
-            {include: parameter-argument-variable},
-            {match: '', pop: true},
-          ]
+        -
+          - include: parameter-argument-variable
+          - match: ''
+            pop: true
         - command-call-common-aside-&pop
 
   command-call-common-glob-&pop:
     # Pop after exactly one argument defining a glob pattern, allowing for asides first
     - match: ''
       set:
-        - [
-            {include: parameter-argument-glob},
-            {match: '', pop: true},
-          ]
+        -
+          - include: parameter-argument-glob
+          - match: ''
+            pop: true
         - command-call-common-aside-&pop
 
   command-call-common-opt-arg-&pop:
     # A short option followed by an argument. Pop after one pair
     - match: (?=-[^{{ws_sep}}])
       push:
-        - [
-            # If we see whitespace, allow comments before the arg
-            {match: '(?={{ws_sep}})', set: command-call-common-arg-aside-&pop},
-            # Else go directly to the argument
-            {match: '', set: command-call-common-arg-now-&pop},
-          ]
-        - [
-            # Exactly one option
-            {include: parameter-option-short-single},
-            {match: '', pop: true},
-          ]
+        -
+          # If we see whitespace, allow comments before the arg
+          - match: (?={{ws_sep}})
+            set: command-call-common-arg-aside-&pop
+          # Else go directly to the argument
+          - match: ''
+            set: command-call-common-arg-now-&pop
+        -
+          # Exactly one option
+          - include: parameter-option-short-single
+          - match: ''
+            pop: true
 
     - match: ''
       pop: true
@@ -978,16 +975,15 @@ contexts:
     # A series of short options where each might be followed by an argument. Pop at an extra argument or block punctuation
     - match: (?=-[^{{ws_sep}}])
       push:
-        - [
-            # End at block punctuation or after one argument
-            {match: '(?={{block_punc}})', pop: true},
-            {include: command-call-common-arg-now-&pop},
-          ]
-        - [
-            # Eat one or more sequential short options
-            {include: parameter-option-short-group},
-            {include: command-call-common-aside-&pop},
-          ]
+        -
+          # End at block punctuation or after one argument
+          - match: (?={{block_punc}})
+            pop: true
+          - include: command-call-common-arg-now-&pop
+        -
+          # Eat one or more sequential short options
+          - include: parameter-option-short-group
+          - include: command-call-common-aside-&pop
 
     - include: command-call-common-aside-&pop
 
@@ -997,28 +993,27 @@ contexts:
     # A complete command comprising a name element and optional parameter/comment elements
     - match: (?=\S)
       set:
-        - [
-            # Allowed elements (now forcibly using arguments, no more options)
-            # Pop only at end of a block
-            {include: command-call-common-arg-list-&pop},
-          ]
-        - [
-            {match: '(?={{block_end}})', pop: true},
+        -
+          # Allowed elements (now forcibly using arguments, no more options)
+          # Pop only at end of a block
+          - include: command-call-common-arg-list-&pop
+        -
+          - match: (?={{block_end}})
+            pop: true
 
-            # Pop this context and enter the one which only recognises arguments
-            {include: command-call-common-end-of-options-&pop},
+          # Pop this context and enter the one which only recognises arguments
+          - include: command-call-common-end-of-options-&pop
 
-            # Allowed elements (including options)
-            {include: separator-whitespace},
-            {include: comment},
-            {include: block-plain},
-            {include: parameter},
-          ]
-        - [
-            # A name element
-            {match: '(?=[{{ws_sep}}])', pop: true},
-            {include: command-call-standard-name},
-          ]
+          # Allowed elements (including options)
+          - include: separator-whitespace
+          - include: comment
+          - include: block-plain
+          - include: parameter
+        -
+          # A name element
+          - match: (?=[{{ws_sep}}])
+            pop: true
+          - include: command-call-standard-name
 
   command-call-standard-name:
     # Treat the element as a fraction of a name made of arbitrary strings
@@ -1267,10 +1262,10 @@ contexts:
         1: punctuation.definition.variable.sign.execline
         2: punctuation.definition.variable.begin.execline
       set:
-        - [
-            {meta_scope: variable.other.braces.execline},
-            {match: '', pop: true},
-          ]
+        -
+          - meta_scope: variable.other.braces.execline
+          - match: ''
+            pop: true
         - variable-substitution-quoted-continue
 
     # Can't use variable-substitution-quoted-continue and the meta_scope/clear_scopes approach, because a '}' would get variable.bare
@@ -1291,10 +1286,10 @@ contexts:
         1: punctuation.definition.variable.sign.execline
         2: punctuation.definition.variable.begin.execline
       set:
-        - [
-            {meta_scope: variable.other.braces.execline},
-            {match: '', pop: true},
-          ]
+        -
+          - meta_scope: variable.other.braces.execline
+          - match: ''
+            pop: true
         - variable-substitution-unquoted-continue
 
     # Can't use variable-substitution-unquoted-continue and the meta_scope/clear_scopes approach, because a '}' would get variable.bare
@@ -1346,10 +1341,10 @@ contexts:
         string.quoted.execline
         punctuation.definition.variable.end.execline
       set:
-        - [
-            {clear_scopes: 1},
-            {match: '', pop: true},
-          ]
+        -
+          - clear_scopes: 1
+          - match: ''
+            pop: true
         - variable-substitution-quoted-continue
 
     # Switch to unquoted string
@@ -1368,16 +1363,16 @@ contexts:
         meta.string.unquoted.execline
         punctuation.definition.variable.end.execline
       set:
-        - [
-            {clear_scopes: 1},
-            {match: '', pop: true},
-          ]
-        - [
-            # After we've terminated at least one variable, allow yielding to occur. If there are nested braces variable subs, this will unfortunately cause an early termination of all those after the innermost one. Failing to handle that scenario is considered acceptable as it is so unlikely
-            {match: '(?=[{{str_yield_all}}])', pop: true},
+        -
+          - clear_scopes: 1
+          - match: ''
+            pop: true
+        -
+          # After we've terminated at least one variable, allow yielding to occur. If there are nested braces variable subs, this will unfortunately cause an early termination of all those after the innermost one. Failing to handle that scenario is considered acceptable as it is so unlikely
+          - match: (?=[{{str_yield_all}}])
+            pop: true
 
-            {include: variable-substitution-unquoted-continue},
-          ]
+          - include: variable-substitution-unquoted-continue
 
     # Switch to quoted string
     - match: \"
