@@ -1,0 +1,32 @@
+[
+	{
+		"id": "preferences",
+		"children": [{
+			"caption": "Package Settings",
+			"id": "package-settings",
+			"children": [{
+				"caption": "Execline",
+				"children": [
+					{
+						"caption": "Readme",
+						"command": "open_file",
+						"args": {"file": "${packages}/execline/README.md"},
+					},
+					{
+						"caption": "Changelog",
+						"command": "open_file",
+						"args": {"file": "${packages}/execline/CHANGELOG.md"},
+					},
+					{
+						"caption": "-"
+					},
+					{
+						"caption": "Report a bug",
+						"command": "open_url",
+						"args": {"url": "https://github.com/Phidica/sublime-execline/issues"},
+					}
+				]
+			}]
+		}]
+	}
+]
