@@ -111,20 +111,8 @@ contexts:
             - match: (?=[{{ws_sep}}=])
               pop: true
 
-            # We would use the parameter-common context, but we need to exclude '=' from unquoted strings
-
-            - include: string-quoted
-
-            - match: (?=\$)
-              push: variable-substitution-begin-unquoted
-              # Limitation: '=' isn't able to end this context
-
-            - match: ''
-              push:
-                - meta_scope: meta.string.unquoted.execline
-                - match: (?=[{{ws_sep}}{"$=])
-                  pop: true
-                - include: string-unquoted-patterns
+            # string-unquoted breaks at {{str_yield_opt_long_sep}}
+            - include: parameter-common
 
         # Consume the '=' and then use standard parameter patterns as well as numerics
         - match: =
