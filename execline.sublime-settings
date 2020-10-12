@@ -1,0 +1,475 @@
+{
+	// Turn on debug/informational output in the console.
+	// Must restart ST or reload plugins for change to take effect
+	"user_chainload_debugging": false,
+
+	// List of active sets of custom chainloading commands.
+	// To disable a set of commands, remove it from this list.
+	// If you add a new name NAME to this list, then you must define a new setting called "user_chainload_set_NAME" which is a list of objects, where each defines the command line call signature for a particular command.
+	// Each object in the array given to the parent setting defines several properties, where the keys of the properties are:
+	//   - "name" (required)
+	//   - "type" (optional)
+	//   - "elements" (required)
+	// The value to "name" is a string which is the literal command name. It may optionally be an array of strings for convenience when defining multiple commands with identical call signatures.
+	// The value to "type" is a string which determines the type of highlighting the command receives, and is one of:
+	//   - "function" (the assumed default if this property is omitted)
+	//   - "keyword"
+	// The value to "elements" is an array of objects where each object describes a sequential component of the parameters provided to the command (ie, the call signature), broken into the options list and then individual arguments or blocks. Due to the internal implementation of parameter selection it is necessary to describe both the options list as well as what comes immediately after the options list in a single combined element.
+	// Each object in the array given to "elements" defines one property, where the key is one of:
+	//   - "argument" (a run of non-whitespace characters)
+	//   - "block" (a block as defined by execline documentation)
+	//   - "options_then_argument" (an options list and an argument immediately following it)
+	//   - "options_then_block" (an options list and a block immediately following it)
+	//   - "options_then_end" (an options list and then the end of parameters passed to the command)
+	// The value to "argument" is a string which is one of:
+	//   - "generic" (a typical argument with no special treatment)
+	//   - "variable" (a variable name)
+	//   - "pattern" (a glob pattern)
+	// The value to "block" is a string which is one of:
+	//   - "program" (contained parameters are interpreted as a fresh argv program line)
+	//   - "arguments" (contained parameters are interpreted as generic arguments)
+	//   - "trap" (the block taken by the "trap" builtin)
+	//   - "multidefine" (the block taken by the "multidefine" builtin)
+	// The value to "options_then_argument" is an object which defines two properties, where the keys of the two properties are "options_taking_arguments" and "argument".
+	// The value to "options_then_block" is an object which defines one property, where the key of the property is "block".
+	// The value to "options_then_end" is an object which defines one property, where the key of the property is "options_taking_arguments".
+	// The value to "options_taking_arguments" is an array of strings where each string is a single letter corresponding to an option which consumes the parameter following it as an argument to that option. If none of the options to a particular command take arguments, then the array may be empty.
+	// See the default sets for examples of command line call signatures using all these features.
+	"user_chainload_active": ["coreutils", "s6"],
+
+	// Definition of the coreutils set of chainloading commands, as might be defined by GNU, Busybox, etc
+	"user_chainload_set_coreutils": [
+		{
+			// chroot [option] newroot [command [arg]...]
+			"name": "chroot",
+			"elements": [
+				{"argument": "generic"},
+			],
+		},
+		// {
+		// 	// env [option]... [name=value]... [command [arg]...]
+		// 	// Currently impossible to implement
+		// },
+		{
+			// nice [ -n adjustment ] [command [arg]...]
+			"name": "nice",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["n"]}},
+			],
+		},
+		{
+			// nohup command [arg]...
+			"name": "nohup",
+			"elements": [],
+		},
+		{
+			// time [option] command [arg]...
+			"name": "time",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["f", "o"]}},
+			],
+		},
+		{
+			// timeout [option] duration command [arg]...
+			"name": "timeout",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["k", "s"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// watch [option] command [arg]...
+			"name": "watch",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["n"]}},
+			],
+		},
+		{
+			// xargs [option] [command [arg]...]
+			"name": "xargs",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["a", "I", "L", "n", "p", "s"]}},
+			],
+		},
+	],
+
+	// Definition of the s6 set of chainloading commands
+	"user_chainload_set_s6": [
+		/* s6 base */
+		{
+			// s6-svlisten1 [ -U | -u | -D | -d | -r | -R ] [ -t timeout ] servicedir prog...
+			"name": "s6-svlisten1",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["t"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-svlisten [ -U | -u | -D | -d | -r | -R ] [ -a | -o ] [ -t timeout ] { servicedir servicedir... } prog...
+			"name": "s6-svlisten",
+			"elements": [
+				{"options_then_block": {"block": "arguments"}},
+			],
+		},
+		{
+			// s6-notifyoncheck [ -d ] [ -3 notiffd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n n ] [ -c checkprog ] prog...
+			"name": "s6-notifyoncheck",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["3", "s", "T", "t", "w", "n", "c"]}},
+			],
+		},
+		{
+			// s6-permafailon secs deathcount events prog...
+			"name": "s6-permafailon",
+			"elements": [
+				{"argument": "generic"},
+				{"argument": "generic"},
+				{"argument": "generic"},
+			],
+		},
+		{
+			// s6-envdir [ -I | -i ] [ -n ] [ -f ] [ -c nullis ] dir prog...
+			"name": "s6-envdir",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["c"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-envuidgid [ -u | -g | -B ] [ -n ] [ -i | -D uid:gid:gidlist ] account prog...
+			"name": "s6-envuidgid",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["D"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-fghack prog...
+			"name": "s6-fghack",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": []}},
+			],
+		},
+		{
+			// s6-setsid [ -s | -b | -f | -g ] [ -i | -I | -q ] [ -d ctty ] prog...
+			"name": "s6-setsid",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["d"]}},
+			],
+		},
+		{
+			// s6-setuidgid account prog...
+			"name": "s6-setuidgid",
+			"elements": [
+				{"argument": "generic"},
+			],
+		},
+		{
+			// s6-applyuidgid [ -z ] [ -u uid ] [ -g gid ] [ -G gidlist ] [ -U ] prog...
+			"name": "s6-applyuidgid",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["u", "g", "G"]}},
+			],
+		},
+		{
+			// s6-softlimit [ -a allmem ] [ -c core ] [ -d data ] [ -f fsize ] [ -l lock ] [ -m mem ] [ -o ofiles ] [ -p proc ] [ -r res ] [ -s stack ] [ -t cpusecs ] prog...
+			"name": "s6-softlimit",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["a", "c", "d", "f", "l", "m", "o", "p", "r", "s", "t"]}},
+			],
+		},
+		{
+			// s6-ftrig-listen1 [ -t timeout ] fifodir regexp prog...
+			"name": "s6-ftrig-listen1",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["t"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-ftrig-listen [ -a | -o ] [ -t timeout ] { fifodir1 regexp1 fifodir2 regexp2 ... } prog...
+			"name": "s6-ftrig-listen",
+			"elements": [
+				{"options_then_block": {"block": "arguments"}},
+			],
+		},
+		{
+			// s6-ipcclient [ -q | -Q | -v ] [ -p localpath ] [ -l localname ] path prog...
+			"name": "s6-ipcclient",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["p", "l"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-ipcserver [ -1 ] [ -q | -Q | -v ] [ -d | -D ] [ -P | -p ] [ -a perms ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ] path prog...
+			"name": "s6-ipcserver",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["a", "c", "C", "b", "G", "g", "u"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-ipcserver-socketbinder [ -d | -D ] [ -b backlog ] [ -M | -m ] [ -a perms ] [ -B ] path prog...
+			"name": "s6-ipcserver-socketbinder",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["b", "a"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-ipcserverd [ -1 ] [ -v verbosity ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog...
+			"name": "s6-ipcserverd",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "c", "C"]}},
+			],
+		},
+		{
+			// s6-ipcserver-access [ -v verbosity ] [ -E | -e ] [ -l localname ] [ -i rulesdir | -x rulesfile ] prog...
+			"name": "s6-ipcserver-access",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "l", "i", "x"]}},
+			],
+		},
+		{
+			// s6-connlimit prog...
+			"name": "s6-connlimit",
+			"elements": [],
+		},
+		{
+			// s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -d ] [ -t timeout ] [ sargv... ]
+			// "sargv" is ultimately prepended to "cargv" from s6-sudoc and the result is exec'd, so in principle "sargv" represents the start of a program line. We might as well pretend that s6-sudod is a chainloading command in order to allow that program line to be highlighted
+			"name": "s6-sudod",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["t"]}},
+			],
+		},
+		{
+			// s6-setlock [ -n | -N | -t timeout ] [ -r | -w ] file prog...
+			"name": "s6-setlock",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["t"],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-fdholder-retrieve [ -D ] [ -t timeout ] path id prog...
+			"name": "s6-fdholder-retrieve",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["t"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-fdholder-getdump [ -t timeout ] path prog...
+			"name": "s6-fdholder-getdump",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": ["t"],
+					"argument": "generic",
+				}
+			}],
+		},
+
+		/* s6-portable-utils */
+		// {
+		// 	// s6-env [ -i ] [ name=value... ] [ prog... ]
+		// 	// Currently impossible to implement
+		// },
+		{
+			// s6-maximumtime [ -0 | -a | -b | -i | -k | -q | -t | -x | -1 | -2 ] milli prog...
+			"name": "s6-maximumtime",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": [],
+					"argument": "generic",
+				}
+			}],
+		},
+		{
+			// s6-nice [ -I | -i ] [ -n value ] [ prog... ]
+			"name": "s6-nice",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["n"]}},
+			],
+		},
+		{
+			// s6-sleep [ -m ] time [ prog... ]
+			"name": "s6-sleep",
+			"elements": [{
+				"options_then_argument": {
+					"options_taking_arguments": [],
+					"argument": "generic",
+				}
+			}],
+		},
+
+		/* s6-linux-utils */
+		{
+			// s6-chroot newroot prog...
+			"name": "s6-chroot",
+			"elements": [
+				{"argument": "generic"},
+			],
+		},
+		{
+			// s6-pivotchroot newroot putold prog...
+			"name": "s6-pivotchroot",
+			"elements": [
+				{"argument": "generic"},
+				{"argument": "generic"},
+			],
+		},
+
+		/* s6-networking */
+		{
+			// s6-tcpclient [ -qQv46dDrRhHnN ] [ -t timeout ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog...
+			"name": "s6-tcpclient",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["t", "l", "T", "i", "p"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tcpserver [ -qQv461 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ] ip port prog...
+			"name": "s6-tcpserver",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["c", "C", "b", "G", "g", "u"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tcpserver* [ -1 ] [ -v verbosity ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ] ip port prog...
+			"name": ["s6-tcpserver4", "s6-tcpserver6"],
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["v", "c", "C", "b", "G", "g", "u"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tcpserver*-socketbinder [ -dDMmB ] [ -b backlog ] ip port prog...
+			"name": ["s6-tcpserver4-socketbinder", "s6-tcpserver6-socketbinder"],
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["b"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tcpserver*d [ -1 ] [ -v verbosity ] [ -c maxconn ] [ -C localmaxconn ] prog...
+			"name": ["s6-tcpserver4d", "s6-tcpserver6d"],
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "c", "C"]}},
+			],
+		},
+		{
+			// s6-tlsclient [ options : s6-tcpclient | s6-tlsc ] host port prog...
+			"name": "s6-tlsclient",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["t", "l", "T", "i", "p", "v", "K", "k", "6", "7"],
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tlsserver [ -e ] [ options : s6-tcpserver | s6-tcpserver-access | s6-tlsd | s6-applyuidgid ] ip port prog...
+			"name": "s6-tlsserver",
+			"elements": [
+				{
+					"options_then_argument": {
+						"options_taking_arguments": ["c", "C", "b", "v", "l", "B", "t", "i", "x", "K", "G", "g", "u"],
+						// Note: "-k servername" appears in s6-tlsserver.html, but isn't a valid option to s6-tlsd
+						"argument": "generic",
+					}
+				},
+				{
+					"argument": "generic"
+				},
+			],
+		},
+		{
+			// s6-tlsc [ -SsYyZz ] [ -v verbosity ] [ -K kimeout ] [ -k servername ] [ -6 rfd ] [ -7 wfd ] prog...
+			"name": "s6-tlsc",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "K", "k", "6", "7"]}},
+			],
+		},
+		{
+			// s6-tlsd [ -SsYyZz ] [ -v verbosity ] [ -K kimeout ] prog...
+			"name": "s6-tlsd",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "K"]}},
+			],
+		},
+		{
+			// s6-tcpserver-access [ -v verbosity ] [ -WwDdHhRrPp ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog...
+			"name": "s6-tcpserver-access",
+			"elements": [
+				{"options_then_end": {"options_taking_arguments": ["v", "l", "B", "t", "i", "x"]}},
+			],
+		},
+	],
+}

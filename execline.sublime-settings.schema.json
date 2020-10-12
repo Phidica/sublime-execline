@@ -1,0 +1,100 @@
+{
+  // This file implements a JSON Schema, however it is parsed with the builtin
+  // Sublime Text JSON parser which allows non-spec JSON elements such as
+  // JS-style comments and trailing commas, so it is misleading to give it the
+  // .json suffix. However, using the .sublime-settings suffix triggers ST to
+  // automatically load it as a legitimate settings file, so that's no good
+  // either
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "definitions": {
+    "command_name": {
+      "type": "string",
+      "minLength": 1,
+    },
+    "list_of_options": {
+      "type": "array",
+      "minLength": 0, // List is usually mandatory but can be empty
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1,
+      },
+    },
+    "argument": {
+      "type": "string",
+      "enum": ["generic", "variable", "pattern"],
+    },
+    "block": {
+      "type": "string",
+      "enum": ["program", "arguments", "trap", "multidefine"],
+    },
+    "options_then_argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["options_taking_arguments", "argument"],
+      "properties": {
+        "options_taking_arguments": {"$ref": "#/definitions/list_of_options"},
+        "argument": {"$ref": "#/definitions/argument"},
+      },
+    },
+    "options_then_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["block"],
+      "properties": {"block": {"$ref": "#/definitions/block"}},
+    },
+    "options_then_end": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["options_taking_arguments"],
+      "properties": {"options_taking_arguments": {"$ref":
+        "#/definitions/list_of_options"}},
+    },
+  },
+
+  // This is the schema for an individual custom_chain_set_* property
+  "type": "array",
+  "uniqueItems": false, // Doesn't practically matter, and has gross error msg
+  "items": {
+    "type": "object",
+    "required": ["name", "elements"],
+    "properties": {
+      "name": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/command_name"
+          },
+          {
+            "type": "array",
+            "minItems": 1,
+            "items": {"$ref": "#/definitions/command_name"},
+          },
+        ],
+      },
+      "type": {
+        "type": "string",
+        "enum": ["function", "keyword"],
+      },
+      "elements": {
+        "type": "array",
+        "minLength": 0, // Could have a command that *just* chainloads
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1,
+          "properties": {
+            "argument": {"$ref": "#/definitions/argument"},
+            "block": {"$ref": "#/definitions/block"},
+            "options_then_argument": {"$ref":
+              "#/definitions/options_then_argument"},
+            "options_then_block": {"$ref":
+              "#/definitions/options_then_block"},
+            "options_then_end": {"$ref": "#/definitions/options_then_end"},
+          },
+        },
+      },
+    },
+  },
+}

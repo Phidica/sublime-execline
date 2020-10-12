@@ -10,7 +10,7 @@ Planned features
 
 - [x] Complete syntax coverage of the execline builtins.
 - [x] Snippets (~~keywords~~).
-- [ ] \(If possible) Custom specification of signatures for user-defined functions.
+- [x] Custom specification of call signatures for external chainloading commands.
 - [ ] Distribution via Package Control.
 
 File extension

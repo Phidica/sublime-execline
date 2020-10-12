@@ -344,6 +344,7 @@ contexts:
         - include: separator-whitespace
         - include: comment
         - include: command-call-chainload
+        - include: Cache/execline/execline-user-chainload.sublime-syntax
         - include: command-call-standard
 
   command-call-chainload:
