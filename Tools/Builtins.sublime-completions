@@ -1,0 +1,69 @@
+{
+	"scope": "source.shell.execline",
+	"completions": [
+		// Process state control
+		"foreground",
+		"background",
+		"exec",
+		"cd",
+		"execline-cd",
+		"posix-cd",
+		"umask",
+		"execline-umask",
+		"posix-umask",
+		"wait",
+		"exit",
+		"trap",
+
+		// Conditional execution
+		"if",
+		"ifelse",
+		"ifte",
+		"ifthenelse",
+		"tryexec",
+
+		// Looped execution
+		"forx",
+		"forstdin",
+		"forbacktickx",
+		"loopwhilex",
+
+		// Redirection
+		"fdclose",
+		"fdblock",
+		"fdmove",
+		"fdswap",
+		"fdreserve",
+		"redirfd",
+		"pipeline",
+		"piperw",
+		"heredoc",
+
+		// Variable (environment/substitutions)
+		"emptyenv",
+		"envfile",
+		"export",
+		"unexport",
+		"getcwd",
+		"getpid",
+		"withstdinas",
+		"backtick",
+
+		"define",
+		"importas",
+		"elglob",
+		"elgetpositionals",
+		"multidefine",
+		"multisubstitute",
+
+		// Scripting
+		"runblock",
+		"elgetopt",
+		"shift",
+		"dollarat",
+
+		// Misc
+		"execlineb",
+		"homeof",
+	],
+}
